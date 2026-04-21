@@ -8,9 +8,12 @@ import { ScanningOverlay } from "@/components/tactical/ScanningOverlay";
 import { MissionAccomplishedModal } from "@/components/tactical/MissionAccomplishedModal";
 import { computeRoute, bearing, DEMO, LatLng, RouteResult } from "@/lib/routing";
 import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
 
 function Dashboard() {
   const { missionState, setMissionState, t } = useDashboard();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Patient + hospital selection (auto-pick first; rotate on reset)
   const [patientIdx, setPatientIdx] = useState(0);
@@ -170,8 +173,20 @@ function Dashboard() {
         patient={patient}
         onNavigate={handleNavigateToPatient}
         onCustomDispatch={handleCustomDispatch}
+        mobileOpen={sidebarOpen}
+        onMobileOpenChange={setSidebarOpen}
       />
-      <main className="relative flex-1 h-screen">
+      <main className="relative flex-1 h-screen min-w-0">
+        {/* Mobile menu trigger */}
+        <Button
+          onClick={() => setSidebarOpen(true)}
+          variant="ghost"
+          size="icon"
+          aria-label="Open menu"
+          className="lg:hidden absolute top-4 left-4 z-[600] h-10 w-10 tactical-panel rounded-lg backdrop-blur-md"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
         <MapEngine
           path={route?.path ?? null}
           vehiclePos={vehiclePos}

@@ -6,6 +6,7 @@ import {
   DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { MoreVertical, Pencil, Languages, Eye, LogOut, Check, Radio } from "lucide-react";
 import { LANGUAGES } from "@/lib/i18n";
 import { TelemetryCard } from "./TelemetryCard";
@@ -20,17 +21,19 @@ interface Props {
   patient: Patient;
   onNavigate: () => void;
   onCustomDispatch: (s: string, e: string) => void;
+  mobileOpen?: boolean;
+  onMobileOpenChange?: (open: boolean) => void;
 }
 
-export function Sidebar({ patient, onNavigate, onCustomDispatch }: Props) {
+function SidebarBody({ patient, onNavigate, onCustomDispatch }: Pick<Props, "patient" | "onNavigate" | "onCustomDispatch">) {
   const { driver, t, lang, setLang, eyeComfort, toggleEyeComfort } = useDashboard();
   const [editOpen, setEditOpen] = useState(false);
 
   return (
     <>
-      <aside className="w-[340px] shrink-0 h-screen border-r border-border bg-card/40 backdrop-blur-xl flex flex-col">
+      <div className="h-full flex flex-col">
         {/* Header / Brand */}
-        <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-gradient-tactical">
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-gradient-tactical shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="relative">
               <Radio className="h-6 w-6 text-emergency" />
@@ -44,7 +47,7 @@ export function Sidebar({ patient, onNavigate, onCustomDispatch }: Props) {
         </div>
 
         {/* Driver Profile */}
-        <div className="px-5 py-4 border-b border-border">
+        <div className="px-5 py-4 border-b border-border shrink-0">
           <div className="flex items-center gap-3">
             <div className="relative">
               <img
@@ -65,7 +68,7 @@ export function Sidebar({ patient, onNavigate, onCustomDispatch }: Props) {
               <DropdownMenuTrigger className="h-8 w-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition">
                 <MoreVertical className="h-4 w-4" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-56 z-[10002]">
                 <DropdownMenuLabel className="font-display tracking-wider text-xs">SETTINGS</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setEditOpen(true)}>
@@ -99,7 +102,7 @@ export function Sidebar({ patient, onNavigate, onCustomDispatch }: Props) {
         </div>
 
         {/* Language Bar */}
-        <div className="px-3 py-2 border-b border-border bg-muted/20 flex items-center gap-1.5 overflow-x-auto custom-scrollbar">
+        <div className="px-3 py-2 border-b border-border bg-muted/20 flex items-center gap-1.5 overflow-x-auto custom-scrollbar shrink-0">
           <Languages className="h-3.5 w-3.5 text-muted-foreground shrink-0 ml-1" />
           {LANGUAGES.map((l) => (
             <button
@@ -125,13 +128,34 @@ export function Sidebar({ patient, onNavigate, onCustomDispatch }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-2.5 border-t border-border font-mono text-[10px] text-muted-foreground flex justify-between">
+        <div className="px-5 py-2.5 border-t border-border font-mono text-[10px] text-muted-foreground flex justify-between shrink-0">
           <span>v2.4.1 · TAC-OS</span>
           <span className="text-success">● SYS NOMINAL</span>
         </div>
-      </aside>
+      </div>
 
       <EditDetailsModal open={editOpen} onOpenChange={setEditOpen} />
+    </>
+  );
+}
+
+export function Sidebar({ patient, onNavigate, onCustomDispatch, mobileOpen, onMobileOpenChange }: Props) {
+  return (
+    <>
+      {/* Desktop: persistent sidebar */}
+      <aside className="hidden lg:flex w-[340px] shrink-0 h-screen border-r border-border bg-card/40 backdrop-blur-xl flex-col">
+        <SidebarBody patient={patient} onNavigate={onNavigate} onCustomDispatch={onCustomDispatch} />
+      </aside>
+
+      {/* Mobile/Tablet: sheet drawer */}
+      <Sheet open={!!mobileOpen} onOpenChange={onMobileOpenChange}>
+        <SheetContent
+          side="left"
+          className="p-0 w-[88vw] max-w-[360px] bg-card/95 backdrop-blur-xl border-border z-[10002]"
+        >
+          <SidebarBody patient={patient} onNavigate={onNavigate} onCustomDispatch={onCustomDispatch} />
+        </SheetContent>
+      </Sheet>
     </>
   );
 }
