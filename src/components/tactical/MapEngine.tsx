@@ -135,30 +135,33 @@ export function MapEngine({ path, vehiclePos, vehicleHeading, destination, etaMi
       </MapContainer>
 
       {/* HUD overlays */}
-      {/* Top-left status pill */}
-      <div className="absolute top-4 left-4 z-[500] flex items-center gap-2">
-        <div className="tactical-panel rounded-full px-3 py-1.5 flex items-center gap-2 backdrop-blur-md">
+      {/* Top-left status pill (offset on mobile to clear hamburger) */}
+      <div className="absolute top-4 left-4 z-[500] flex items-center gap-2 ml-12 lg:ml-0">
+        <div className="tactical-panel rounded-full px-2.5 py-1 sm:px-3 sm:py-1.5 flex items-center gap-2 backdrop-blur-md">
           <span className="h-2 w-2 rounded-full bg-success animate-blink" />
-          <span className="font-mono text-[10px] tracking-widest text-foreground">GPS LOCK · 12 SAT</span>
+          <span className="font-mono text-[9px] sm:text-[10px] tracking-widest text-foreground whitespace-nowrap">
+            <span className="hidden sm:inline">GPS LOCK · 12 SAT</span>
+            <span className="sm:hidden">GPS · 12</span>
+          </span>
         </div>
       </div>
 
       {/* Top-right controls */}
-      <div className="absolute top-4 right-4 z-[500] flex flex-col gap-2">
+      <div className="absolute top-4 right-4 z-[500] flex flex-col gap-2 items-end">
         <div className="tactical-panel rounded-lg p-1 flex backdrop-blur-md">
           <Button
             variant="ghost" size="sm"
             onClick={() => setView("transit")}
-            className={`h-8 px-3 font-mono text-[10px] tracking-wider ${view === "transit" ? "bg-primary/20 text-primary" : "text-muted-foreground"}`}
+            className={`h-8 px-2 sm:px-3 font-mono text-[10px] tracking-wider ${view === "transit" ? "bg-primary/20 text-primary" : "text-muted-foreground"}`}
           >
-            <MapIcon className="h-3.5 w-3.5 mr-1.5" /> {t("transitView")}
+            <MapIcon className="h-3.5 w-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">{t("transitView")}</span>
           </Button>
           <Button
             variant="ghost" size="sm"
             onClick={() => setView("terrain")}
-            className={`h-8 px-3 font-mono text-[10px] tracking-wider ${view === "terrain" ? "bg-primary/20 text-primary" : "text-muted-foreground"}`}
+            className={`h-8 px-2 sm:px-3 font-mono text-[10px] tracking-wider ${view === "terrain" ? "bg-primary/20 text-primary" : "text-muted-foreground"}`}
           >
-            <Mountain className="h-3.5 w-3.5 mr-1.5" /> {t("terrainView")}
+            <Mountain className="h-3.5 w-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">{t("terrainView")}</span>
           </Button>
         </div>
         <Button
@@ -178,22 +181,22 @@ export function MapEngine({ path, vehiclePos, vehicleHeading, destination, etaMi
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 30 }}
-            className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[500]"
+            className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-[500] w-[min(92vw,420px)]"
           >
-            <div className="tactical-panel rounded-full px-5 py-2.5 flex items-center gap-5 backdrop-blur-xl glow-primary">
+            <div className="tactical-panel rounded-full px-3 py-2 sm:px-5 sm:py-2.5 flex items-center justify-center gap-3 sm:gap-5 backdrop-blur-xl glow-primary">
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-primary" />
+                <Clock className="h-4 w-4 text-primary shrink-0" />
                 <div>
                   <div className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground leading-none">{t("eta")}</div>
-                  <div className="font-display font-bold text-base text-foreground leading-tight">{etaMin.toFixed(1)} min</div>
+                  <div className="font-display font-bold text-sm sm:text-base text-foreground leading-tight">{etaMin.toFixed(1)} min</div>
                 </div>
               </div>
               <div className="h-8 w-px bg-border" />
               <div className="flex items-center gap-2">
-                <RouteIcon className="h-4 w-4 text-emergency" />
+                <RouteIcon className="h-4 w-4 text-emergency shrink-0" />
                 <div>
                   <div className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground leading-none">{t("distance")}</div>
-                  <div className="font-display font-bold text-base text-foreground leading-tight">{distanceKm.toFixed(2)} km</div>
+                  <div className="font-display font-bold text-sm sm:text-base text-foreground leading-tight">{distanceKm.toFixed(2)} km</div>
                 </div>
               </div>
             </div>
