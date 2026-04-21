@@ -3,8 +3,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDashboard } from "@/lib/dashboard-context";
-import { Navigation, Siren, MapPin, User } from "lucide-react";
+import { Navigation, Siren, MapPin, User, Crosshair } from "lucide-react";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 interface Patient { id: string; name: string; addr: string }
 
@@ -86,26 +87,78 @@ export function MissionCard({ patient, onNavigate, onCustomDispatch }: Props) {
 
 function ManualForm({ onDispatch }: { onDispatch: (s: string, e: string) => void }) {
   const { t } = useDashboard();
-  let startEl: HTMLInputElement | null = null;
-  let endEl: HTMLInputElement | null = null;
+  const [currentLoc, setCurrentLoc] = useState<string>("");
+  const [locating, setLocating] = useState(false);
+  const [destination, setDestination] = useState<string>("");
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      setCurrentLoc("17.44860, 78.39080");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setCurrentLoc(`${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+        setLocating(false);
+      },
+      () => {
+        setCurrentLoc("17.44860, 78.39080");
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  };
+
+  useEffect(() => {
+    detectLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <form
       className="space-y-3"
       onSubmit={(e) => {
         e.preventDefault();
-        onDispatch(startEl?.value ?? "", endEl?.value ?? "");
+        onDispatch(currentLoc, destination);
       }}
     >
       <div className="space-y-1">
-        <Label className="text-xs text-muted-foreground">{t("customStart")}</Label>
-        <Input ref={(el) => (startEl = el)} placeholder="e.g. node_42" className="font-mono text-xs h-8" />
+        <Label className="text-xs text-muted-foreground flex items-center gap-1">
+          <MapPin className="h-3 w-3 text-success" /> {t("customStart")}
+        </Label>
+        <div className="flex gap-1.5">
+          <Input
+            value={locating ? "Detecting GPS…" : currentLoc}
+            readOnly
+            className="font-mono text-xs h-8 bg-muted/40 cursor-not-allowed"
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={detectLocation}
+            disabled={locating}
+            className="h-8 px-2 shrink-0"
+            title="Re-detect GPS"
+          >
+            <Crosshair className={`h-3.5 w-3.5 ${locating ? "animate-spin text-primary" : ""}`} />
+          </Button>
+        </div>
       </div>
       <div className="space-y-1">
-        <Label className="text-xs text-muted-foreground">{t("customEnd")}</Label>
-        <Input ref={(el) => (endEl = el)} placeholder="e.g. node_117" className="font-mono text-xs h-8" />
+        <Label className="text-xs text-muted-foreground flex items-center gap-1">
+          <MapPin className="h-3 w-3 text-emergency" /> {t("customEnd")}
+        </Label>
+        <Input
+          value={destination}
+          onChange={(e) => setDestination(e.target.value)}
+          placeholder="e.g. Apollo Hospital, Jubilee Hills"
+          className="text-xs h-8"
+        />
       </div>
-      <Button type="submit" size="sm" variant="outline" className="w-full">
+      <Button type="submit" size="sm" variant="outline" className="w-full" disabled={!destination.trim()}>
         {t("dispatch")}
       </Button>
     </form>
