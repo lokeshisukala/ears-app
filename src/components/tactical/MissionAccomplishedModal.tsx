@@ -14,7 +14,7 @@ export function MissionAccomplishedModal({ open, onDone }: { open: boolean; onDo
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: "spring", stiffness: 200, damping: 14 }}
-            className="mx-auto h-20 w-20 rounded-full bg-gradient-to-br from-success to-emerald-400 flex items-center justify-center mb-2 shadow-[0_0_40px_hsl(var(--success)/0.7)]"
+            className="mx-auto h-20 w-20 rounded-full bg-success flex items-center justify-center mb-2 shadow-[0_0_40px_hsl(var(--success)/0.7)]"
           >
             <CheckCircle2 className="h-12 w-12 text-success-foreground" strokeWidth={2.5} />
           </motion.div>
