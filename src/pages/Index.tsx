@@ -13,10 +13,19 @@ import { Menu } from "lucide-react";
 import { ClockHUD } from "@/components/tactical/ClockHUD";
 import { CompassSpeed } from "@/components/tactical/CompassSpeed";
 import { QuickActionDock } from "@/components/tactical/QuickActionDock";
+import { VoiceCommand } from "@/components/tactical/VoiceCommand";
+import { pushHistory } from "@/components/tactical/MissionHistory";
+import { useAuth } from "@/lib/auth-context";
 
 function Dashboard() {
-  const { missionState, setMissionState, t } = useDashboard();
+  const { missionState, setMissionState, t, setDriver } = useDashboard();
+  const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Sync logged-in user → dashboard driver
+  useEffect(() => {
+    if (user) setDriver({ name: user.name, unit: user.unit });
+  }, [user, setDriver]);
 
   // Patient + hospital selection (auto-pick first; rotate on reset)
   const [patientIdx, setPatientIdx] = useState(0);
@@ -39,6 +48,10 @@ function Dashboard() {
   const [vitalsOpen, setVitalsOpen] = useState(false);
   const [scanningActive, setScanningActive] = useState(false);
   const [accomplishedOpen, setAccomplishedOpen] = useState(false);
+
+  // Mission timing for history record
+  const missionStartRef = useRef<number | null>(null);
+  const missionDistanceRef = useRef<number>(0);
 
   const animFrame = useRef<number | null>(null);
 
