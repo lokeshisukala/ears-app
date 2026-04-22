@@ -110,6 +110,8 @@ function Dashboard() {
     setDistanceKm(r.distanceKm);
     setEtaMin(r.etaMin);
     setMissionState("en_route_patient");
+    missionStartRef.current = Date.now();
+    missionDistanceRef.current = r.distanceKm;
     toast({ title: "🚨 Route Computed", description: `Dijkstra path: ${r.path.length} nodes · ${r.distanceKm.toFixed(2)} km` });
 
     // simulate drive (compress to ~10s for demo)
@@ -155,6 +157,7 @@ function Dashboard() {
       setDistanceKm(r2.distanceKm);
       setEtaMin(r2.etaMin);
       setMissionState("en_route_hospital");
+      missionDistanceRef.current += r2.distanceKm;
       toast({ title: `→ ${closest.name}`, description: `${closest.beds} beds available · ETA ${r2.etaMin.toFixed(1)} min` });
 
       animateAlong(r2.path, 10, () => {
@@ -167,6 +170,20 @@ function Dashboard() {
   const handleDone = useCallback(() => {
     setAccomplishedOpen(false);
     if (animFrame.current) cancelAnimationFrame(animFrame.current);
+
+    // Save mission to history
+    if (missionStartRef.current) {
+      pushHistory({
+        id: `m-${missionStartRef.current}`,
+        patient: patient.name,
+        hospital: hospital.name,
+        endedAt: Date.now(),
+        durationSec: (Date.now() - missionStartRef.current) / 1000,
+        distanceKm: missionDistanceRef.current,
+      });
+      missionStartRef.current = null;
+      missionDistanceRef.current = 0;
+    }
 
     // rotate to next patient for next mission
     const nextIdx = (patientIdx + 1) % DEMO.patients.length;
@@ -181,7 +198,20 @@ function Dashboard() {
     setEtaMin(0);
     setMissionState("dispatched");
     toast({ title: "✓ Mission Accomplished", description: "Standing by for next dispatch." });
-  }, [patientIdx, setMissionState]);
+  }, [patientIdx, patient, hospital, setMissionState]);
+
+  // Voice command router
+  const handleVoiceCommand = useCallback((cmd: "navigate" | "sos" | "call" | "scan") => {
+    if (cmd === "navigate" && (missionState === "dispatched" || missionState === "idle")) {
+      handleNavigateToPatient();
+    } else if (cmd === "sos") {
+      toast({ title: "🆘 SOS BROADCAST", description: "Emergency beacon activated.", variant: "destructive" });
+    } else if (cmd === "call") {
+      toast({ title: "📞 Calling Hospital", description: "Connecting to receiving facility…" });
+    } else if (cmd === "scan") {
+      toast({ title: "🔍 Scanning", description: "Sweeping nearby facilities…" });
+    }
+  }, [missionState, handleNavigateToPatient]);
 
   const handleCustomDispatch = useCallback((s: string, e: string) => {
     toast({ title: "Manual Dispatch", description: `Routing ${s || "AUTO"} → ${e || "AUTO"}` });
@@ -224,6 +254,7 @@ function Dashboard() {
           active={missionState === "en_route_patient" || missionState === "en_route_hospital"}
         />
         <QuickActionDock />
+        <VoiceCommand onCommand={handleVoiceCommand} />
         <ScanningOverlay active={scanningActive} hospitalName={hospital.name} />
       </main>
 
