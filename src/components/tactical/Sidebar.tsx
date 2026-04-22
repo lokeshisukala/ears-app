@@ -12,8 +12,13 @@ import { LANGUAGES } from "@/lib/i18n";
 import { TelemetryCard } from "./TelemetryCard";
 import { TrafficBar } from "./TrafficBar";
 import { MissionCard } from "./MissionCard";
+import { WeatherCard } from "./WeatherCard";
+import { MissionHistory } from "./MissionHistory";
 import { useState } from "react";
 import { EditDetailsModal } from "./EditDetailsModal";
+import { useAuth } from "@/lib/auth-context";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 interface Patient { id: string; name: string; addr: string }
 
@@ -27,7 +32,15 @@ interface Props {
 
 function SidebarBody({ patient, onNavigate, onCustomDispatch }: Pick<Props, "patient" | "onNavigate" | "onCustomDispatch">) {
   const { driver, t, lang, setLang, eyeComfort, toggleEyeComfort } = useDashboard();
+  const { logout, user } = useAuth();
+  const navigate = useNavigate();
   const [editOpen, setEditOpen] = useState(false);
+
+  const handleLogout = () => {
+    toast({ title: "👋 Signed out", description: `${user?.unit ?? "Driver"} — secure session ended.` });
+    logout();
+    navigate("/login", { replace: true });
+  };
 
   return (
     <>
@@ -91,10 +104,11 @@ function SidebarBody({ patient, onNavigate, onCustomDispatch }: Pick<Props, "pat
                   <Eye className="h-4 w-4 mr-2" /> {t("eyeComfort")}
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <a href="#" className="text-emergency focus:text-emergency">
-                    <LogOut className="h-4 w-4 mr-2" /> {t("logout")}
-                  </a>
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="text-emergency focus:text-emergency cursor-pointer"
+                >
+                  <LogOut className="h-4 w-4 mr-2" /> {t("logout")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -123,8 +137,10 @@ function SidebarBody({ patient, onNavigate, onCustomDispatch }: Pick<Props, "pat
         {/* Scroll content */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
           <TelemetryCard />
+          <WeatherCard />
           <TrafficBar />
           <MissionCard patient={patient} onNavigate={onNavigate} onCustomDispatch={onCustomDispatch} />
+          <MissionHistory />
         </div>
 
         {/* Footer */}
