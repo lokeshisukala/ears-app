@@ -49,13 +49,18 @@ function Dashboard() {
       const startTs = performance.now();
       const totalMs = totalSec * 1000;
 
+      if (!path || path.length < 2) {
+        onArrive();
+        return;
+      }
+
       const tick = (now: number) => {
         const t = Math.min(1, (now - startTs) / totalMs);
         const idxF = t * (path.length - 1);
-        const i = Math.floor(idxF);
+        const i = Math.min(path.length - 1, Math.floor(idxF));
         const frac = idxF - i;
         const a = path[i];
-        const b = path[Math.min(path.length - 1, i + 1)];
+        const b = path[Math.min(path.length - 1, i + 1)] ?? a;
         const lat = a[0] + (b[0] - a[0]) * frac;
         const lng = a[1] + (b[1] - a[1]) * frac;
         setVehiclePos([lat, lng]);
