@@ -8,6 +8,7 @@ import { useDashboard } from "@/lib/dashboard-context";
 import { Button } from "@/components/ui/button";
 import { Sun, Moon, Map as MapIcon, Mountain, Clock, Route as RouteIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { SirenControl } from "./SirenControl";
 
 interface Props {
   path: LatLng[] | null;
@@ -164,14 +165,17 @@ export function MapEngine({ path, vehiclePos, vehicleHeading, destination, etaMi
             <Mountain className="h-3.5 w-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">{t("terrainView")}</span>
           </Button>
         </div>
-        <Button
-          variant="ghost" size="icon"
-          onClick={toggleTheme}
-          className="tactical-panel h-10 w-10 rounded-lg backdrop-blur-md"
-          aria-label="Toggle theme"
-        >
-          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </Button>
+        <div className="flex gap-2">
+          <SirenControl />
+          <Button
+            variant="ghost" size="icon"
+            onClick={toggleTheme}
+            className="tactical-panel h-10 w-10 rounded-lg backdrop-blur-md"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
+        </div>
       </div>
 
       {/* ETA pill (bottom center) */}
