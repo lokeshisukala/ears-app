@@ -10,6 +10,9 @@ import { computeRoute, bearing, DEMO, LatLng, RouteResult } from "@/lib/routing"
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
+import { ClockHUD } from "@/components/tactical/ClockHUD";
+import { CompassSpeed } from "@/components/tactical/CompassSpeed";
+import { QuickActionDock } from "@/components/tactical/QuickActionDock";
 
 function Dashboard() {
   const { missionState, setMissionState, t } = useDashboard();
@@ -201,6 +204,13 @@ function Dashboard() {
           distanceKm={distanceKm}
           scanning={scanningActive}
         />
+        <ClockHUD />
+        <CompassSpeed
+          heading={vehicleHeading}
+          vehiclePos={vehiclePos}
+          active={missionState === "en_route_patient" || missionState === "en_route_hospital"}
+        />
+        <QuickActionDock />
         <ScanningOverlay active={scanningActive} hospitalName={hospital.name} />
       </main>
 

@@ -223,3 +223,15 @@
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
 }
+
+/* Emergency siren light bars */
+@keyframes siren-red {
+  0%, 49% { background: radial-gradient(ellipse at left, hsl(358 100% 55% / .55) 0%, transparent 60%); }
+  50%, 100% { background: radial-gradient(ellipse at left, hsl(358 100% 55% / 0) 0%, transparent 60%); }
+}
+@keyframes siren-blue {
+  0%, 49% { background: radial-gradient(ellipse at right, hsl(220 100% 60% / 0) 0%, transparent 60%); }
+  50%, 100% { background: radial-gradient(ellipse at right, hsl(220 100% 60% / .55) 0%, transparent 60%); }
+}
+.animate-siren-red { animation: siren-red .55s steps(2,end) infinite; }
+.animate-siren-blue { animation: siren-blue .55s steps(2,end) infinite; }
