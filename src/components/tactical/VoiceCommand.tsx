@@ -65,7 +65,7 @@ export function VoiceCommand({ onCommand }: Props) {
   };
 
   return (
-    <div className="absolute bottom-24 sm:bottom-28 right-4 z-[501] flex flex-col items-end gap-2">
+    <div className="absolute top-28 sm:top-32 right-4 z-[501] flex flex-col items-end gap-2">
       {last && (
         <div className="tactical-panel rounded-md px-2 py-1 font-mono text-[10px] tracking-wider text-foreground backdrop-blur-md max-w-[180px] truncate">
           🎤 "{last}"
