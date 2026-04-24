@@ -21,15 +21,19 @@ app.use(express.json());
 // ── REST fallback (curl / debug) ────────────────────────────────────
 app.get("/health", (_req, res) => res.json({ ok: true, service: "ears-routing", uptime: process.uptime() }));
 
-app.post("/route", (req, res) => {
+app.post("/route", async (req, res) => {
   const { start, end } = req.body ?? {};
   if (!Array.isArray(start) || !Array.isArray(end)) {
     return res.status(400).json({ error: "start and end must be [lat,lng] arrays" });
   }
-  const t0 = performance.now();
-  const result = computeRoute(start, end);
-  const tookMs = +(performance.now() - t0).toFixed(2);
-  res.json({ ...result, tookMs });
+  try {
+    const t0 = performance.now();
+    const result = await computeRoute(start, end);
+    const tookMs = +(performance.now() - t0).toFixed(2);
+    res.json({ ...result, tookMs });
+  } catch (e) {
+    res.status(500).json({ error: String(e.message || e) });
+  }
 });
 
 // ── Socket.io realtime ─────────────────────────────────────────────
@@ -39,16 +43,20 @@ const io = new Server(httpServer, { cors: { origin: "*" } });
 io.on("connection", (socket) => {
   console.log(`[ears] client connected: ${socket.id}`);
 
-  socket.on("route:request", ({ start, end }) => {
+  socket.on("route:request", async ({ start, end }) => {
     if (!Array.isArray(start) || !Array.isArray(end)) {
       socket.emit("route:error", { message: "Invalid coordinates" });
       return;
     }
-    const t0 = performance.now();
-    const result = computeRoute(start, end);
-    const tookMs = +(performance.now() - t0).toFixed(2);
-    console.log(`[ears] route ${start} → ${end}  (${result.nodesExplored} nodes, ${tookMs}ms)`);
-    socket.emit("route:result", { ...result, tookMs });
+    try {
+      const t0 = performance.now();
+      const result = await computeRoute(start, end);
+      const tookMs = +(performance.now() - t0).toFixed(2);
+      console.log(`[ears] route ${start} → ${end}  (cpp, ${result.nodesExplored} nodes, ${tookMs}ms)`);
+      socket.emit("route:result", { ...result, tookMs });
+    } catch (e) {
+      socket.emit("route:error", { message: String(e.message || e) });
+    }
   });
 
   socket.on("telemetry:push", (payload) => {
