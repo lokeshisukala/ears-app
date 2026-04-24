@@ -112,7 +112,7 @@ function Dashboard() {
     setMissionState("en_route_patient");
     missionStartRef.current = Date.now();
     missionDistanceRef.current = r.distanceKm;
-    toast({ title: "🚨 Route Computed", description: `Dijkstra path: ${r.path.length} nodes · ${r.distanceKm.toFixed(2)} km` });
+    toast({ title: "🚨 Dijkstra Route Computed", description: `${r.nodesExplored} nodes explored · ${r.path.length} waypoints · ${r.distanceKm.toFixed(2)} km` });
 
     // simulate drive (compress to ~10s for demo)
     animateAlong(r.path, 10, () => {
