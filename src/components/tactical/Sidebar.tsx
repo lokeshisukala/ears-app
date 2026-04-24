@@ -94,7 +94,7 @@ function SidebarBody({ patient, onNavigate, onCustomDispatch }: Pick<Props, "pat
                   <DropdownMenuSubContent>
                     {LANGUAGES.map((l) => (
                       <DropdownMenuItem key={l.code} onClick={() => setLang(l.code)}>
-                        <span className="flex-1">{l.native}</span>
+                        <span className="flex-1">{l.label}</span>
                         {lang === l.code && <Check className="h-4 w-4 ml-2 text-primary" />}
                       </DropdownMenuItem>
                     ))}
