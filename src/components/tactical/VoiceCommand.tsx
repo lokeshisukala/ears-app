@@ -65,7 +65,7 @@ export function VoiceCommand({ onCommand }: Props) {
   };
 
   return (
-    <div className="absolute bottom-24 sm:bottom-28 right-4 z-[500] flex flex-col items-end gap-2">
+    <div className="absolute bottom-40 sm:bottom-44 left-4 z-[501] flex flex-col items-start gap-2">
       {last && (
         <div className="tactical-panel rounded-md px-2 py-1 font-mono text-[10px] tracking-wider text-foreground backdrop-blur-md max-w-[180px] truncate">
           🎤 "{last}"
@@ -75,13 +75,13 @@ export function VoiceCommand({ onCommand }: Props) {
         onClick={toggle}
         size="icon"
         aria-label={listening ? "Stop listening" : "Start voice command"}
-        className={`h-12 w-12 rounded-full backdrop-blur-md transition-all ${
+        className={`h-10 w-10 rounded-full backdrop-blur-md transition-all ${
           listening
             ? "bg-emergency hover:bg-emergency/90 animate-pulse glow-primary"
-            : "bg-primary hover:bg-primary/90 glow-primary"
+            : "tactical-panel hover:bg-primary/20 text-primary"
         }`}
       >
-        {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+        {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
       </Button>
     </div>
   );
