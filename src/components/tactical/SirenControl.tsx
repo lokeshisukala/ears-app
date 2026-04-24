@@ -9,42 +9,56 @@ import { Button } from "@/components/ui/button";
 export function SirenControl() {
   const [active, setActive] = useState(false);
   const ctxRef = useRef<AudioContext | null>(null);
-  const oscRef = useRef<OscillatorNode | null>(null);
-  const gainRef = useRef<GainNode | null>(null);
-  const lfoRef = useRef<number | null>(null);
+  const nodesRef = useRef<{ osc: OscillatorNode; gain: GainNode; filter: BiquadFilterNode } | null>(null);
+  const toggleRef = useRef<number | null>(null);
 
+  /**
+   * Authentic European-style ambulance two-tone "nee-naw":
+   * alternates between two stable pitches (~960 Hz HI, ~770 Hz LO),
+   * each held for ~450 ms, shaped through a low-pass filter to
+   * mimic a real horn driver instead of a synth tone.
+   */
   const start = () => {
     try {
-      const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+      const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       const ctx = new Ctx();
       const osc = ctx.createOscillator();
+      const filter = ctx.createBiquadFilter();
       const gain = ctx.createGain();
-      osc.type = "sawtooth";
-      osc.frequency.value = 700;
-      gain.gain.value = 0.06;
-      osc.connect(gain).connect(ctx.destination);
-      osc.start();
-      ctxRef.current = ctx;
-      oscRef.current = osc;
-      gainRef.current = gain;
 
-      // wail LFO
-      let t = 0;
-      lfoRef.current = window.setInterval(() => {
-        t += 0.12;
-        const f = 700 + Math.sin(t) * 350;
-        if (oscRef.current) oscRef.current.frequency.setTargetAtTime(f, ctx.currentTime, 0.04);
-      }, 60);
+      osc.type = "square";              // brassy horn-like timbre
+      osc.frequency.value = 960;
+      filter.type = "lowpass";
+      filter.frequency.value = 1800;    // tame the harsh harmonics
+      filter.Q.value = 6;
+      gain.gain.value = 0.08;
+
+      osc.connect(filter).connect(gain).connect(ctx.destination);
+      osc.start();
+
+      ctxRef.current = ctx;
+      nodesRef.current = { osc, gain, filter };
+
+      // Two-tone toggle: HI ↔ LO every 450ms with a tiny glide
+      let hi = true;
+      const swap = () => {
+        if (!nodesRef.current) return;
+        const f = hi ? 770 : 960;
+        nodesRef.current.osc.frequency.setTargetAtTime(f, ctx.currentTime, 0.015);
+        hi = !hi;
+      };
+      swap();
+      toggleRef.current = window.setInterval(swap, 450);
     } catch {
       // audio not available — visual only
     }
   };
 
   const stop = () => {
-    if (lfoRef.current) { clearInterval(lfoRef.current); lfoRef.current = null; }
-    try { oscRef.current?.stop(); } catch {}
+    if (toggleRef.current) { clearInterval(toggleRef.current); toggleRef.current = null; }
+    try { nodesRef.current?.osc.stop(); } catch {}
     try { ctxRef.current?.close(); } catch {}
-    oscRef.current = null; gainRef.current = null; ctxRef.current = null;
+    nodesRef.current = null; ctxRef.current = null;
   };
 
   useEffect(() => {
