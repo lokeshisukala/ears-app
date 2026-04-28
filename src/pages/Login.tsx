@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Radio, Lock, User, AlertTriangle, Eye, EyeOff } from "lucide-react";
+import { Lock, User, AlertTriangle, Eye, EyeOff } from "lucide-react";
+import earsLogo from "@/assets/ears-logo.jpeg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,9 +56,13 @@ export default function Login() {
         {/* Brand */}
         <div className="flex flex-col items-center gap-2 mb-6">
           <div className="relative">
-            <div className="h-16 w-16 rounded-full bg-emergency/15 grid place-items-center glow-primary">
-              <Radio className="h-8 w-8 text-emergency" />
-            </div>
+            <img
+              src={earsLogo}
+              alt="EARS 2026 logo"
+              width={72}
+              height={72}
+              className="h-18 w-18 h-[72px] w-[72px] rounded-xl object-cover border border-primary/40 glow-primary"
+            />
             <span className="absolute top-0 right-0 h-3 w-3 rounded-full bg-emergency animate-blink" />
           </div>
           <h1 className="font-display font-bold text-2xl tracking-widest text-glow">EARS</h1>

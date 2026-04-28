@@ -10,6 +10,7 @@ import { computeRoute, bearing, DEMO, LatLng, RouteResult } from "@/lib/routing"
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
+import earsLogo from "@/assets/ears-logo.jpeg";
 import { ClockHUD } from "@/components/tactical/ClockHUD";
 import { CompassSpeed } from "@/components/tactical/CompassSpeed";
 import { QuickActionDock } from "@/components/tactical/QuickActionDock";
@@ -228,16 +229,22 @@ function Dashboard() {
         onMobileOpenChange={setSidebarOpen}
       />
       <main className="relative flex-1 h-screen min-w-0">
-        {/* Mobile menu trigger */}
-        <Button
-          onClick={() => setSidebarOpen(true)}
-          variant="ghost"
-          size="icon"
-          aria-label="Open menu"
-          className="lg:hidden absolute top-4 left-4 z-[600] h-10 w-10 tactical-panel rounded-lg backdrop-blur-md"
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
+        {/* Mobile header: menu trigger + brand */}
+        <div className="lg:hidden absolute top-3 left-3 right-3 z-[600] flex items-center gap-2 pointer-events-none">
+          <Button
+            onClick={() => setSidebarOpen(true)}
+            variant="ghost"
+            size="icon"
+            aria-label="Open menu"
+            className="h-10 w-10 tactical-panel rounded-lg backdrop-blur-md pointer-events-auto shrink-0"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <div className="tactical-panel rounded-lg backdrop-blur-md px-2.5 py-1.5 flex items-center gap-2 pointer-events-auto">
+            <img src={earsLogo} alt="EARS logo" className="h-7 w-7 rounded object-cover" />
+            <span className="font-display font-bold text-sm tracking-widest text-glow leading-none">EARS</span>
+          </div>
+        </div>
         <MapEngine
           path={route?.path ?? null}
           vehiclePos={vehiclePos}
