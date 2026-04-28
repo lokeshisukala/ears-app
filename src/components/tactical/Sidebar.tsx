@@ -1,5 +1,6 @@
 import { useDashboard } from "@/lib/dashboard-context";
 import driverImg from "@/assets/driver-avatar.jpg";
+import earsLogo from "@/assets/ears-logo.jpeg";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuSub,
@@ -47,14 +48,20 @@ function SidebarBody({ patient, onNavigate, onCustomDispatch }: Pick<Props, "pat
       <div className="h-full flex flex-col">
         {/* Header / Brand */}
         <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-gradient-tactical shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="relative">
-              <Radio className="h-6 w-6 text-emergency" />
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="relative shrink-0">
+              <img
+                src={earsLogo}
+                alt="EARS 2026 logo"
+                width={44}
+                height={44}
+                className="h-11 w-11 rounded-lg object-cover border border-primary/40 glow-primary"
+              />
               <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-emergency animate-blink" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="font-display font-bold text-lg text-glow tracking-widest leading-none">EARS</div>
-              <div className="text-[9px] uppercase tracking-widest text-muted-foreground">{t("appTagline")}</div>
+              <div className="text-[9px] uppercase tracking-widest text-muted-foreground truncate">{t("appTagline")}</div>
             </div>
           </div>
         </div>
