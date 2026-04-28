@@ -112,7 +112,7 @@ export function QuickActionDock() {
 
   return (
     <>
-      <div className="absolute bottom-24 sm:bottom-28 left-4 z-[500] flex flex-col-reverse items-start gap-2">
+      <div className="absolute bottom-20 sm:bottom-28 left-3 sm:left-4 z-[500] flex flex-col-reverse items-start gap-2">
         {open && actions.map((a, i) => (
           <div
             key={a.id}
