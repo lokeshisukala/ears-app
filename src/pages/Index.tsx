@@ -220,6 +220,27 @@ function Dashboard() {
     handleNavigateToPatient();
   }, [handleNavigateToPatient]);
 
+  // ─── Auto-dispatch: incident alert accepted ───
+  const handleIncidentAccept = useCallback((inc: IncidentReport) => {
+    const r = computeRoute(vehiclePos, inc.coord, Date.now());
+    setRoute(r);
+    setDestination({ coord: inc.coord, label: `${inc.type} · ${inc.id}`, type: "patient" });
+    setDistanceKm(r.distanceKm);
+    setEtaMin(r.etaMin);
+    setMissionState("en_route_patient");
+    missionStartRef.current = Date.now();
+    missionDistanceRef.current = r.distanceKm;
+    toast({
+      title: `🚨 EN ROUTE · ${inc.id}`,
+      description: `${inc.addr} · ${r.distanceKm.toFixed(2)} km · ETA ${r.etaMin.toFixed(1)} min`,
+      variant: "destructive",
+    });
+    animateAlong(r.path, 10, () => {
+      setMissionState("arrived_patient");
+      setBoardingOpen(true);
+    });
+  }, [vehiclePos, animateAlong, setMissionState]);
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
       <Sidebar
