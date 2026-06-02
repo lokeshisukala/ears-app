@@ -284,6 +284,11 @@ function Dashboard() {
         />
         <QuickActionDock />
         <VoiceCommand onCommand={handleVoiceCommand} />
+        <IncidentAlert
+          idle={missionState === "idle" || missionState === "dispatched"}
+          vehiclePos={vehiclePos}
+          onAccept={handleIncidentAccept}
+        />
         <ScanningOverlay active={scanningActive} hospitalName={hospital.name} />
       </main>
 
