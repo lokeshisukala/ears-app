@@ -15,6 +15,7 @@ import { ClockHUD } from "@/components/tactical/ClockHUD";
 import { CompassSpeed } from "@/components/tactical/CompassSpeed";
 import { QuickActionDock } from "@/components/tactical/QuickActionDock";
 import { VoiceCommand } from "@/components/tactical/VoiceCommand";
+import { IncidentAlert, IncidentReport } from "@/components/tactical/IncidentAlert";
 import { pushHistory } from "@/components/tactical/MissionHistory";
 import { useAuth } from "@/lib/auth-context";
 
