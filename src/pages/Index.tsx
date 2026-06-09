@@ -18,6 +18,8 @@ import { QuickActionDock } from "@/components/tactical/QuickActionDock";
 import { VoiceCommand } from "@/components/tactical/VoiceCommand";
 import { IncidentAlert, IncidentReport } from "@/components/tactical/IncidentAlert";
 import { pushHistory } from "@/components/tactical/MissionHistory";
+import { ServerLostOverlay } from "@/components/tactical/ServerLostOverlay";
+import { RouteAdvisory } from "@/components/tactical/RouteAdvisory";
 import { useAuth } from "@/lib/auth-context";
 
 function Dashboard() {
