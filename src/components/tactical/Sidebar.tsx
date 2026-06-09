@@ -8,13 +8,16 @@ import {
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { MoreVertical, Pencil, Languages, Eye, LogOut, Check, Radio } from "lucide-react";
+import { MoreVertical, Pencil, Languages, Eye, LogOut, Check } from "lucide-react";
 import { LANGUAGES } from "@/lib/i18n";
 import { TelemetryCard } from "./TelemetryCard";
 import { TrafficBar } from "./TrafficBar";
 import { MissionCard } from "./MissionCard";
 import { WeatherCard } from "./WeatherCard";
 import { MissionHistory } from "./MissionHistory";
+import { SpecialistCard } from "./SpecialistCard";
+import { VitalsGraph } from "./VitalsGraph";
+import { TrafficBlockageCard } from "./TrafficBlockageCard";
 import { useState } from "react";
 import { EditDetailsModal } from "./EditDetailsModal";
 import { useAuth } from "@/lib/auth-context";
@@ -25,13 +28,15 @@ interface Patient { id: string; name: string; addr: string }
 
 interface Props {
   patient: Patient;
+  hospitalName: string;
   onNavigate: () => void;
   onCustomDispatch: (s: string, e: string) => void;
+  onDeceased?: () => void;
   mobileOpen?: boolean;
   onMobileOpenChange?: (open: boolean) => void;
 }
 
-function SidebarBody({ patient, onNavigate, onCustomDispatch }: Pick<Props, "patient" | "onNavigate" | "onCustomDispatch">) {
+function SidebarBody({ patient, hospitalName, onNavigate, onCustomDispatch, onDeceased }: Pick<Props, "patient" | "hospitalName" | "onNavigate" | "onCustomDispatch" | "onDeceased">) {
   const { driver, t, lang, setLang, eyeComfort, toggleEyeComfort } = useDashboard();
   const { logout, user } = useAuth();
   const navigate = useNavigate();
@@ -143,9 +148,12 @@ function SidebarBody({ patient, onNavigate, onCustomDispatch }: Pick<Props, "pat
 
         {/* Scroll content */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+          <SpecialistCard />
+          <VitalsGraph />
           <TelemetryCard />
           <WeatherCard />
           <TrafficBar />
+          <TrafficBlockageCard hospitalName={hospitalName} onDeceased={onDeceased} />
           <MissionCard patient={patient} onNavigate={onNavigate} onCustomDispatch={onCustomDispatch} />
           <MissionHistory />
         </div>
@@ -162,23 +170,30 @@ function SidebarBody({ patient, onNavigate, onCustomDispatch }: Pick<Props, "pat
   );
 }
 
-export function Sidebar({ patient, onNavigate, onCustomDispatch, mobileOpen, onMobileOpenChange }: Props) {
+export function Sidebar({ patient, hospitalName, onNavigate, onCustomDispatch, onDeceased, mobileOpen, onMobileOpenChange }: Props) {
   return (
-    <>
-      {/* Desktop: persistent sidebar */}
-      <aside className="hidden lg:flex w-[340px] shrink-0 h-screen border-r border-border bg-card/40 backdrop-blur-xl flex-col">
-        <SidebarBody patient={patient} onNavigate={onNavigate} onCustomDispatch={onCustomDispatch} />
-      </aside>
+    <Sheet open={!!mobileOpen} onOpenChange={onMobileOpenChange}>
+      <SheetContent
+        side="left"
+        className="p-0 w-[88vw] max-w-[360px] bg-card/95 backdrop-blur-xl border-border z-[10002] lg:hidden"
+      >
+        <SidebarBody
+          patient={patient}
+          hospitalName={hospitalName}
+          onNavigate={onNavigate}
+          onCustomDispatch={onCustomDispatch}
+          onDeceased={onDeceased}
+        />
+      </SheetContent>
+    </Sheet>
+  );
+}
 
-      {/* Mobile/Tablet: sheet drawer */}
-      <Sheet open={!!mobileOpen} onOpenChange={onMobileOpenChange}>
-        <SheetContent
-          side="left"
-          className="p-0 w-[88vw] max-w-[360px] bg-card/95 backdrop-blur-xl border-border z-[10002]"
-        >
-          <SidebarBody patient={patient} onNavigate={onNavigate} onCustomDispatch={onCustomDispatch} />
-        </SheetContent>
-      </Sheet>
-    </>
+// Desktop sidebar body — used inside the resizable layout in Index.tsx
+export function DesktopSidebar(props: Pick<Props, "patient" | "hospitalName" | "onNavigate" | "onCustomDispatch" | "onDeceased">) {
+  return (
+    <div className="h-screen border-r border-border bg-card/40 backdrop-blur-xl flex flex-col w-full min-w-0">
+      <SidebarBody {...props} />
+    </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DashboardProvider, useDashboard } from "@/lib/dashboard-context";
-import { Sidebar } from "@/components/tactical/Sidebar";
+import { Sidebar, DesktopSidebar } from "@/components/tactical/Sidebar";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { MapEngine } from "@/components/tactical/MapEngine";
 import { PatientBoardingModal } from "@/components/tactical/PatientBoardingModal";
 import { VitalsModal } from "@/components/tactical/VitalsModal";
@@ -241,56 +242,83 @@ function Dashboard() {
     });
   }, [vehiclePos, animateAlong, setMissionState]);
 
-  return (
-    <div className="flex h-screen w-full overflow-hidden bg-background">
-      <Sidebar
-        patient={patient}
-        onNavigate={handleNavigateToPatient}
-        onCustomDispatch={handleCustomDispatch}
-        mobileOpen={sidebarOpen}
-        onMobileOpenChange={setSidebarOpen}
-      />
-      <main className="relative flex-1 h-screen min-w-0">
-        {/* Mobile header: menu trigger + brand */}
-        <div className="lg:hidden absolute top-3 left-3 right-3 z-[600] flex items-center gap-2 pointer-events-none">
-          <Button
-            onClick={() => setSidebarOpen(true)}
-            variant="ghost"
-            size="icon"
-            aria-label="Open menu"
-            className="h-10 w-10 tactical-panel rounded-lg backdrop-blur-md pointer-events-auto shrink-0"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-          <div className="tactical-panel rounded-lg backdrop-blur-md px-2.5 py-1.5 flex items-center gap-2 pointer-events-auto">
-            <img src={earsLogo} alt="EARS logo" className="h-7 w-7 rounded object-cover" />
-            <span className="font-display font-bold text-sm tracking-widest text-glow leading-none">EARS</span>
-          </div>
+  const handleDeceased = useCallback(() => {
+    setMissionState("accomplished");
+    setAccomplishedOpen(true);
+  }, [setMissionState]);
+
+  const sidebarProps = {
+    patient,
+    hospitalName: hospital.name,
+    onNavigate: handleNavigateToPatient,
+    onCustomDispatch: handleCustomDispatch,
+    onDeceased: handleDeceased,
+  };
+
+  const mainContent = (
+    <main className="relative h-screen w-full min-w-0">
+      {/* Mobile header: menu trigger + brand */}
+      <div className="lg:hidden absolute top-3 left-3 right-3 z-[600] flex items-center gap-2 pointer-events-none">
+        <Button
+          onClick={() => setSidebarOpen(true)}
+          variant="ghost"
+          size="icon"
+          aria-label="Open menu"
+          className="h-10 w-10 tactical-panel rounded-lg backdrop-blur-md pointer-events-auto shrink-0"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+        <div className="tactical-panel rounded-lg backdrop-blur-md px-2.5 py-1.5 flex items-center gap-2 pointer-events-auto">
+          <img src={earsLogo} alt="EARS logo" className="h-7 w-7 rounded object-cover" />
+          <span className="font-display font-bold text-sm tracking-widest text-glow leading-none">EARS</span>
         </div>
-        <MapEngine
-          path={route?.path ?? null}
-          vehiclePos={vehiclePos}
-          vehicleHeading={vehicleHeading}
-          destination={destination}
-          etaMin={etaMin}
-          distanceKm={distanceKm}
-          scanning={scanningActive}
-        />
-        <ClockHUD />
-        <CompassSpeed
-          heading={vehicleHeading}
-          vehiclePos={vehiclePos}
-          active={missionState === "en_route_patient" || missionState === "en_route_hospital"}
-        />
-        <QuickActionDock />
-        <VoiceCommand onCommand={handleVoiceCommand} />
-        <IncidentAlert
-          idle={missionState === "idle" || missionState === "dispatched"}
-          vehiclePos={vehiclePos}
-          onAccept={handleIncidentAccept}
-        />
-        <ScanningOverlay active={scanningActive} hospitalName={hospital.name} />
-      </main>
+      </div>
+      <MapEngine
+        path={route?.path ?? null}
+        vehiclePos={vehiclePos}
+        vehicleHeading={vehicleHeading}
+        destination={destination}
+        etaMin={etaMin}
+        distanceKm={distanceKm}
+        scanning={scanningActive}
+      />
+      <ClockHUD />
+      <CompassSpeed
+        heading={vehicleHeading}
+        vehiclePos={vehiclePos}
+        active={missionState === "en_route_patient" || missionState === "en_route_hospital"}
+      />
+      <QuickActionDock />
+      <VoiceCommand onCommand={handleVoiceCommand} />
+      <IncidentAlert
+        idle={missionState === "idle" || missionState === "dispatched"}
+        vehiclePos={vehiclePos}
+        onAccept={handleIncidentAccept}
+      />
+      <ScanningOverlay active={scanningActive} hospitalName={hospital.name} />
+    </main>
+  );
+
+  return (
+    <div className="h-screen w-full overflow-hidden bg-background">
+      {/* Mobile/Tablet: drawer + full-width main */}
+      <div className="lg:hidden h-screen w-full">
+        <Sidebar {...sidebarProps} mobileOpen={sidebarOpen} onMobileOpenChange={setSidebarOpen} />
+        {mainContent}
+      </div>
+
+      {/* Desktop: resizable split */}
+      <div className="hidden lg:block h-screen w-full">
+        <ResizablePanelGroup direction="horizontal" autoSaveId="ears-layout" className="h-screen w-full">
+          <ResizablePanel defaultSize={26} minSize={18} maxSize={50} className="min-w-0">
+            <DesktopSidebar {...sidebarProps} />
+          </ResizablePanel>
+          <ResizableHandle withHandle className="bg-border/60 hover:bg-primary/60 transition-colors" />
+          <ResizablePanel defaultSize={74} minSize={50} className="min-w-0">
+            {mainContent}
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
 
       <PatientBoardingModal open={boardingOpen} onYes={handleBoardingYes} onNo={handleBoardingNo} />
       <VitalsModal open={vitalsOpen} onSubmit={handleVitalsSubmit} />
