@@ -18,6 +18,8 @@ import { QuickActionDock } from "@/components/tactical/QuickActionDock";
 import { VoiceCommand } from "@/components/tactical/VoiceCommand";
 import { IncidentAlert, IncidentReport } from "@/components/tactical/IncidentAlert";
 import { pushHistory } from "@/components/tactical/MissionHistory";
+import { ServerLostOverlay } from "@/components/tactical/ServerLostOverlay";
+import { RouteAdvisory } from "@/components/tactical/RouteAdvisory";
 import { useAuth } from "@/lib/auth-context";
 
 function Dashboard() {
@@ -52,53 +54,68 @@ function Dashboard() {
   const [scanningActive, setScanningActive] = useState(false);
   const [accomplishedOpen, setAccomplishedOpen] = useState(false);
 
+  // EARS uplink state — goes offline on simulated ambulance accident
+  const [serverOnline, setServerOnline] = useState(true);
+
   // Mission timing for history record
   const missionStartRef = useRef<number | null>(null);
   const missionDistanceRef = useRef<number>(0);
 
   const animFrame = useRef<number | null>(null);
+  const pauseRef = useRef<boolean>(false);
 
   // Cleanup animation on unmount
   useEffect(() => () => { if (animFrame.current) cancelAnimationFrame(animFrame.current); }, []);
 
-  // Animate vehicle along path
+  // Pause/resume animation when EARS goes offline / restores
+  useEffect(() => { pauseRef.current = !serverOnline; }, [serverOnline]);
+
+  // Animate vehicle along path (safe against route swaps & pauses)
   const animateAlong = useCallback(
     (path: LatLng[], totalSec: number, onArrive: () => void) => {
       if (animFrame.current) cancelAnimationFrame(animFrame.current);
+      if (!path || path.length < 2) { onArrive(); return; }
+
       const startTs = performance.now();
       const totalMs = totalSec * 1000;
-
-      if (!path || path.length < 2) {
-        onArrive();
-        return;
-      }
+      let pausedAcc = 0;
+      let pausedAt: number | null = null;
 
       const tick = (now: number) => {
-        const t = Math.min(1, (now - startTs) / totalMs);
+        // Honor pause (server offline)
+        if (pauseRef.current) {
+          if (pausedAt === null) pausedAt = now;
+          animFrame.current = requestAnimationFrame(tick);
+          return;
+        }
+        if (pausedAt !== null) { pausedAcc += now - pausedAt; pausedAt = null; }
+
+        const t = Math.min(1, (now - startTs - pausedAcc) / totalMs);
         const idxF = t * (path.length - 1);
-        const i = Math.min(path.length - 1, Math.floor(idxF));
+        const i = Math.min(path.length - 1, Math.max(0, Math.floor(idxF)));
         const frac = idxF - i;
-        const a = path[i];
+        const a = path[i] ?? path[0];
         const b = path[Math.min(path.length - 1, i + 1)] ?? a;
+        if (!a || !b) { onArrive(); return; }
         const lat = a[0] + (b[0] - a[0]) * frac;
         const lng = a[1] + (b[1] - a[1]) * frac;
-        setVehiclePos([lat, lng]);
-        if (i < path.length - 1) setVehicleHeading(bearing(a, b));
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+          setVehiclePos([lat, lng]);
+          if (i < path.length - 1) setVehicleHeading(bearing(a, b));
+        }
 
         // update remaining ETA & distance
         let remaining = 0;
         for (let k = i; k < path.length - 1; k++) {
           const p1 = path[k], p2 = path[k + 1];
+          if (!p1 || !p2) continue;
           remaining += Math.hypot(p1[0] - p2[0], p1[1] - p2[1]) * 111;
         }
         setDistanceKm(remaining);
         setEtaMin((1 - t) * (totalMs / 60000));
 
-        if (t < 1) {
-          animFrame.current = requestAnimationFrame(tick);
-        } else {
-          onArrive();
-        }
+        if (t < 1) animFrame.current = requestAnimationFrame(tick);
+        else onArrive();
       };
       animFrame.current = requestAnimationFrame(tick);
     },
@@ -203,18 +220,51 @@ function Dashboard() {
     toast({ title: "✓ Mission Accomplished", description: "Standing by for next dispatch." });
   }, [patientIdx, patient, hospital, setMissionState]);
 
-  // Voice command router
+  // Voice command router — all branches do something visible
   const handleVoiceCommand = useCallback((cmd: "navigate" | "sos" | "call" | "scan") => {
-    if (cmd === "navigate" && (missionState === "dispatched" || missionState === "idle")) {
-      handleNavigateToPatient();
+    if (cmd === "navigate") {
+      if (missionState === "dispatched" || missionState === "idle") {
+        handleNavigateToPatient();
+      } else {
+        toast({ title: "Already en route", description: "Navigation already in progress." });
+      }
     } else if (cmd === "sos") {
-      toast({ title: "🆘 SOS BROADCAST", description: "Emergency beacon activated.", variant: "destructive" });
+      toast({ title: "🆘 SOS BROADCAST", description: "Emergency beacon transmitting on all channels.", variant: "destructive" });
     } else if (cmd === "call") {
-      toast({ title: "📞 Calling Hospital", description: "Connecting to receiving facility…" });
+      toast({ title: "📞 Calling Hospital", description: `Connecting to ${hospital.name}…` });
     } else if (cmd === "scan") {
+      setScanningActive(true);
       toast({ title: "🔍 Scanning", description: "Sweeping nearby facilities…" });
+      setTimeout(() => setScanningActive(false), 2500);
     }
-  }, [missionState, handleNavigateToPatient]);
+  }, [missionState, handleNavigateToPatient, hospital.name]);
+
+  // ─── Simulated ambulance accident → EARS signal lost ───
+  const triggerAccident = useCallback(() => {
+    if (!serverOnline) return;
+    setServerOnline(false);
+    toast({
+      title: "💥 VEHICLE INCIDENT DETECTED",
+      description: "Impact sensors triggered · EARS uplink lost.",
+      variant: "destructive",
+    });
+  }, [serverOnline]);
+
+  // Randomly trigger an accident while driving (rare)
+  useEffect(() => {
+    const driving = missionState === "en_route_patient" || missionState === "en_route_hospital";
+    if (!driving || !serverOnline) return;
+    const delay = 18000 + Math.random() * 22000; // 18–40s into a drive
+    const id = window.setTimeout(() => {
+      if (Math.random() < 0.35) triggerAccident();
+    }, delay);
+    return () => clearTimeout(id);
+  }, [missionState, serverOnline, triggerAccident]);
+
+  const handleRestoreServer = useCallback(() => {
+    setServerOnline(true);
+    toast({ title: "✅ EARS Online", description: "Driver responsive · uplink restored · resuming mission." });
+  }, []);
 
   const handleCustomDispatch = useCallback((s: string, e: string) => {
     toast({ title: "Manual Dispatch", description: `Routing ${s || "AUTO"} → ${e || "AUTO"}` });
@@ -295,12 +345,30 @@ function Dashboard() {
         vehiclePos={vehiclePos}
         onAccept={handleIncidentAccept}
       />
+      <RouteAdvisory
+        active={serverOnline && (missionState === "en_route_patient" || missionState === "en_route_hospital")}
+        phase={missionState === "en_route_hospital" ? "hospital" : "patient"}
+      />
+      {/* Manual accident-simulation button (demo) */}
+      {(missionState === "en_route_patient" || missionState === "en_route_hospital") && serverOnline && (
+        <Button
+          onClick={triggerAccident}
+          size="sm"
+          variant="destructive"
+          className="absolute bottom-3 right-3 z-[502] font-mono tracking-wider text-[10px] backdrop-blur-md opacity-80 hover:opacity-100"
+          title="Simulate ambulance accident"
+        >
+          ⚠ SIM ACCIDENT
+        </Button>
+      )}
       <ScanningOverlay active={scanningActive} hospitalName={hospital.name} />
     </main>
   );
 
   return (
     <div className="h-screen w-full overflow-hidden bg-background">
+      <ServerLostOverlay open={!serverOnline} onRestore={handleRestoreServer} />
+
       {/* Mobile/Tablet: drawer + full-width main */}
       <div className="lg:hidden h-screen w-full">
         <Sidebar {...sidebarProps} mobileOpen={sidebarOpen} onMobileOpenChange={setSidebarOpen} />
