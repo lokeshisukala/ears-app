@@ -8,13 +8,16 @@ import {
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { MoreVertical, Pencil, Languages, Eye, LogOut, Check, Radio } from "lucide-react";
+import { MoreVertical, Pencil, Languages, Eye, LogOut, Check } from "lucide-react";
 import { LANGUAGES } from "@/lib/i18n";
 import { TelemetryCard } from "./TelemetryCard";
 import { TrafficBar } from "./TrafficBar";
 import { MissionCard } from "./MissionCard";
 import { WeatherCard } from "./WeatherCard";
 import { MissionHistory } from "./MissionHistory";
+import { SpecialistCard } from "./SpecialistCard";
+import { VitalsGraph } from "./VitalsGraph";
+import { TrafficBlockageCard } from "./TrafficBlockageCard";
 import { useState } from "react";
 import { EditDetailsModal } from "./EditDetailsModal";
 import { useAuth } from "@/lib/auth-context";
@@ -25,8 +28,10 @@ interface Patient { id: string; name: string; addr: string }
 
 interface Props {
   patient: Patient;
+  hospitalName: string;
   onNavigate: () => void;
   onCustomDispatch: (s: string, e: string) => void;
+  onDeceased?: () => void;
   mobileOpen?: boolean;
   onMobileOpenChange?: (open: boolean) => void;
 }
