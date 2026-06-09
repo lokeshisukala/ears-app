@@ -345,12 +345,30 @@ function Dashboard() {
         vehiclePos={vehiclePos}
         onAccept={handleIncidentAccept}
       />
+      <RouteAdvisory
+        active={serverOnline && (missionState === "en_route_patient" || missionState === "en_route_hospital")}
+        phase={missionState === "en_route_hospital" ? "hospital" : "patient"}
+      />
+      {/* Manual accident-simulation button (demo) */}
+      {(missionState === "en_route_patient" || missionState === "en_route_hospital") && serverOnline && (
+        <Button
+          onClick={triggerAccident}
+          size="sm"
+          variant="destructive"
+          className="absolute bottom-3 right-3 z-[502] font-mono tracking-wider text-[10px] backdrop-blur-md opacity-80 hover:opacity-100"
+          title="Simulate ambulance accident"
+        >
+          ⚠ SIM ACCIDENT
+        </Button>
+      )}
       <ScanningOverlay active={scanningActive} hospitalName={hospital.name} />
     </main>
   );
 
   return (
     <div className="h-screen w-full overflow-hidden bg-background">
+      <ServerLostOverlay open={!serverOnline} onRestore={handleRestoreServer} />
+
       {/* Mobile/Tablet: drawer + full-width main */}
       <div className="lg:hidden h-screen w-full">
         <Sidebar {...sidebarProps} mobileOpen={sidebarOpen} onMobileOpenChange={setSidebarOpen} />
