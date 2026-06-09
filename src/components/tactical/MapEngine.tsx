@@ -54,8 +54,20 @@ function buildAmbulanceIcon(rotation: number) {
 
 function MapController({ center, zoom, fly }: { center: LatLng; zoom: number; fly: boolean }) {
   const map = useMap();
+
+  // Keep Leaflet in sync when the surrounding resizable panel changes size
   useEffect(() => {
-    if (fly) map.flyTo(center, zoom, { duration: 1.4 });
+    const invalidate = () => map.invalidateSize();
+    const ro = new ResizeObserver(invalidate);
+    ro.observe(map.getContainer());
+    return () => ro.disconnect();
+  }, [map]);
+
+  useEffect(() => {
+    if (!fly) return;
+    const size = map.getSize();
+    if (size.x === 0 || size.y === 0 || !isFinite(center[0]) || !isFinite(center[1])) return;
+    map.flyTo(center, zoom, { duration: 1.4 });
   }, [center, zoom, fly, map]);
   return null;
 }
