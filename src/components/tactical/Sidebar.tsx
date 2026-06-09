@@ -172,39 +172,27 @@ function SidebarBody({ patient, hospitalName, onNavigate, onCustomDispatch, onDe
 
 export function Sidebar({ patient, hospitalName, onNavigate, onCustomDispatch, onDeceased, mobileOpen, onMobileOpenChange }: Props) {
   return (
-    <>
-      {/* Desktop body — rendered by parent inside a resizable panel */}
-      <DesktopSidebar
-        patient={patient}
-        hospitalName={hospitalName}
-        onNavigate={onNavigate}
-        onCustomDispatch={onCustomDispatch}
-        onDeceased={onDeceased}
-      />
-
-      {/* Mobile/Tablet: sheet drawer */}
-      <Sheet open={!!mobileOpen} onOpenChange={onMobileOpenChange}>
-        <SheetContent
-          side="left"
-          className="p-0 w-[88vw] max-w-[360px] bg-card/95 backdrop-blur-xl border-border z-[10002]"
-        >
-          <SidebarBody
-            patient={patient}
-            hospitalName={hospitalName}
-            onNavigate={onNavigate}
-            onCustomDispatch={onCustomDispatch}
-            onDeceased={onDeceased}
-          />
-        </SheetContent>
-      </Sheet>
-    </>
+    <Sheet open={!!mobileOpen} onOpenChange={onMobileOpenChange}>
+      <SheetContent
+        side="left"
+        className="p-0 w-[88vw] max-w-[360px] bg-card/95 backdrop-blur-xl border-border z-[10002] lg:hidden"
+      >
+        <SidebarBody
+          patient={patient}
+          hospitalName={hospitalName}
+          onNavigate={onNavigate}
+          onCustomDispatch={onCustomDispatch}
+          onDeceased={onDeceased}
+        />
+      </SheetContent>
+    </Sheet>
   );
 }
 
-// Desktop body wrapper — exported for the resizable layout in Index.tsx
+// Desktop sidebar body — used inside the resizable layout in Index.tsx
 export function DesktopSidebar(props: Pick<Props, "patient" | "hospitalName" | "onNavigate" | "onCustomDispatch" | "onDeceased">) {
   return (
-    <div className="hidden lg:flex h-screen border-r border-border bg-card/40 backdrop-blur-xl flex-col w-full min-w-0">
+    <div className="h-screen border-r border-border bg-card/40 backdrop-blur-xl flex flex-col w-full min-w-0">
       <SidebarBody {...props} />
     </div>
   );
