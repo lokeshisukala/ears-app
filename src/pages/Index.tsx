@@ -220,18 +220,51 @@ function Dashboard() {
     toast({ title: "✓ Mission Accomplished", description: "Standing by for next dispatch." });
   }, [patientIdx, patient, hospital, setMissionState]);
 
-  // Voice command router
+  // Voice command router — all branches do something visible
   const handleVoiceCommand = useCallback((cmd: "navigate" | "sos" | "call" | "scan") => {
-    if (cmd === "navigate" && (missionState === "dispatched" || missionState === "idle")) {
-      handleNavigateToPatient();
+    if (cmd === "navigate") {
+      if (missionState === "dispatched" || missionState === "idle") {
+        handleNavigateToPatient();
+      } else {
+        toast({ title: "Already en route", description: "Navigation already in progress." });
+      }
     } else if (cmd === "sos") {
-      toast({ title: "🆘 SOS BROADCAST", description: "Emergency beacon activated.", variant: "destructive" });
+      toast({ title: "🆘 SOS BROADCAST", description: "Emergency beacon transmitting on all channels.", variant: "destructive" });
     } else if (cmd === "call") {
-      toast({ title: "📞 Calling Hospital", description: "Connecting to receiving facility…" });
+      toast({ title: "📞 Calling Hospital", description: `Connecting to ${hospital.name}…` });
     } else if (cmd === "scan") {
+      setScanningActive(true);
       toast({ title: "🔍 Scanning", description: "Sweeping nearby facilities…" });
+      setTimeout(() => setScanningActive(false), 2500);
     }
-  }, [missionState, handleNavigateToPatient]);
+  }, [missionState, handleNavigateToPatient, hospital.name]);
+
+  // ─── Simulated ambulance accident → EARS signal lost ───
+  const triggerAccident = useCallback(() => {
+    if (!serverOnline) return;
+    setServerOnline(false);
+    toast({
+      title: "💥 VEHICLE INCIDENT DETECTED",
+      description: "Impact sensors triggered · EARS uplink lost.",
+      variant: "destructive",
+    });
+  }, [serverOnline]);
+
+  // Randomly trigger an accident while driving (rare)
+  useEffect(() => {
+    const driving = missionState === "en_route_patient" || missionState === "en_route_hospital";
+    if (!driving || !serverOnline) return;
+    const delay = 18000 + Math.random() * 22000; // 18–40s into a drive
+    const id = window.setTimeout(() => {
+      if (Math.random() < 0.35) triggerAccident();
+    }, delay);
+    return () => clearTimeout(id);
+  }, [missionState, serverOnline, triggerAccident]);
+
+  const handleRestoreServer = useCallback(() => {
+    setServerOnline(true);
+    toast({ title: "✅ EARS Online", description: "Driver responsive · uplink restored · resuming mission." });
+  }, []);
 
   const handleCustomDispatch = useCallback((s: string, e: string) => {
     toast({ title: "Manual Dispatch", description: `Routing ${s || "AUTO"} → ${e || "AUTO"}` });
