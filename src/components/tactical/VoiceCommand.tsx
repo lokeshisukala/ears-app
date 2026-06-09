@@ -9,14 +9,16 @@ interface Props {
 
 // Minimal types for browser SpeechRecognition API
 type SpeechRecognitionResult = { transcript: string };
-interface SREvent { results: ArrayLike<ArrayLike<SpeechRecognitionResult>> }
+interface SREvent { results: ArrayLike<ArrayLike<SpeechRecognitionResult> & { isFinal?: boolean }> }
+interface SRErrorEvent { error?: string; message?: string }
 interface SR {
   lang: string;
   continuous: boolean;
   interimResults: boolean;
   onresult: ((e: SREvent) => void) | null;
-  onerror: (() => void) | null;
+  onerror: ((e: SRErrorEvent) => void) | null;
   onend: (() => void) | null;
+  onstart: (() => void) | null;
   start: () => void;
   stop: () => void;
 }
@@ -35,32 +37,82 @@ export function VoiceCommand({ onCommand }: Props) {
     rec.lang = "en-US";
     rec.continuous = false;
     rec.interimResults = false;
+    rec.onstart = () => setListening(true);
     rec.onresult = (e) => {
-      const transcript = e.results[0]?.[0]?.transcript?.toLowerCase() ?? "";
+      // Grab the most recent final transcript
+      let transcript = "";
+      const results = e.results as unknown as Array<Array<SpeechRecognitionResult>>;
+      for (let i = 0; i < results.length; i++) {
+        transcript += results[i]?.[0]?.transcript ?? "";
+      }
+      transcript = transcript.trim().toLowerCase();
       setLast(transcript);
       if (!transcript) return;
-      if (/(navigate|go|drive|start)/.test(transcript))      { onCommand("navigate"); toast({ title: "🎤 Voice", description: `"${transcript}" → Navigate` }); }
-      else if (/(sos|emergency|help)/.test(transcript))      { onCommand("sos");      toast({ title: "🆘 Voice", description: `"${transcript}" → SOS`, variant: "destructive" }); }
-      else if (/(call|phone|hospital)/.test(transcript))     { onCommand("call");     toast({ title: "📞 Voice", description: `"${transcript}" → Call` }); }
-      else if (/(scan|find|search)/.test(transcript))        { onCommand("scan");     toast({ title: "🔍 Voice", description: `"${transcript}" → Scan` }); }
-      else                                                    toast({ title: "🎤 Heard", description: `"${transcript}" — no matching command` });
+      console.log("[VoiceCommand] heard:", transcript);
+
+      if (/(navigate|go|drive|start|move|dispatch)/.test(transcript)) {
+        onCommand("navigate"); toast({ title: "🎤 Voice", description: `"${transcript}" → Navigate` });
+      } else if (/(sos|emergency|help|mayday)/.test(transcript)) {
+        onCommand("sos"); toast({ title: "🆘 Voice", description: `"${transcript}" → SOS`, variant: "destructive" });
+      } else if (/(call|phone|hospital|dial)/.test(transcript)) {
+        onCommand("call"); toast({ title: "📞 Voice", description: `"${transcript}" → Call hospital` });
+      } else if (/(scan|find|search|locate)/.test(transcript)) {
+        onCommand("scan"); toast({ title: "🔍 Voice", description: `"${transcript}" → Scan` });
+      } else {
+        toast({ title: "🎤 Heard", description: `"${transcript}" — no matching command` });
+      }
     };
-    rec.onerror = () => setListening(false);
+    rec.onerror = (e) => {
+      console.warn("[VoiceCommand] error:", e?.error, e?.message);
+      setListening(false);
+      const code = e?.error ?? "unknown";
+      if (code === "not-allowed" || code === "service-not-allowed") {
+        toast({ title: "🎤 Microphone blocked", description: "Allow mic access in your browser to use voice.", variant: "destructive" });
+      } else if (code === "no-speech") {
+        toast({ title: "🎤 No speech detected", description: "Tap the mic and try again." });
+      } else if (code !== "aborted") {
+        toast({ title: "🎤 Voice error", description: code });
+      }
+    };
     rec.onend = () => setListening(false);
     recRef.current = rec;
   }, [onCommand]);
 
-  const toggle = () => {
+  const toggle = async () => {
     if (!supported) {
       toast({ title: "Voice unavailable", description: "Speech recognition not supported in this browser." });
       return;
     }
     const rec = recRef.current;
     if (!rec) return;
-    if (listening) { rec.stop(); setListening(false); }
-    else {
-      try { rec.start(); setListening(true); }
-      catch { /* already started */ }
+
+    if (listening) {
+      try { rec.stop(); } catch { /* noop */ }
+      setListening(false);
+      return;
+    }
+
+    // Proactively request microphone permission so SpeechRecognition can start
+    try {
+      if (navigator.mediaDevices?.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // immediately stop tracks — we only needed the permission grant
+        stream.getTracks().forEach((t) => t.stop());
+      }
+    } catch (err) {
+      console.warn("[VoiceCommand] mic permission denied", err);
+      toast({ title: "🎤 Microphone blocked", description: "Please allow microphone access and try again.", variant: "destructive" });
+      return;
+    }
+
+    try {
+      rec.start();
+      setListening(true);
+      toast({ title: "🎤 Listening…", description: "Say: navigate, call hospital, scan, or SOS." });
+    } catch (err) {
+      console.warn("[VoiceCommand] start failed", err);
+      // already started — stop & retry
+      try { rec.stop(); } catch { /* noop */ }
     }
   };
 
