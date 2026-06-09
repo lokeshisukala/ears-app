@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DashboardProvider, useDashboard } from "@/lib/dashboard-context";
-import { Sidebar } from "@/components/tactical/Sidebar";
+import { Sidebar, DesktopSidebar } from "@/components/tactical/Sidebar";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { MapEngine } from "@/components/tactical/MapEngine";
 import { PatientBoardingModal } from "@/components/tactical/PatientBoardingModal";
 import { VitalsModal } from "@/components/tactical/VitalsModal";
