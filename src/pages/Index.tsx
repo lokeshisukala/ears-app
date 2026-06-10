@@ -63,12 +63,31 @@ function Dashboard() {
 
   const animFrame = useRef<number | null>(null);
   const pauseRef = useRef<boolean>(false);
+  const boardingRepromptRef = useRef<number | null>(null);
 
-  // Cleanup animation on unmount
-  useEffect(() => () => { if (animFrame.current) cancelAnimationFrame(animFrame.current); }, []);
+  const clearBoardingReprompt = useCallback(() => {
+    if (boardingRepromptRef.current) {
+      clearTimeout(boardingRepromptRef.current);
+      boardingRepromptRef.current = null;
+    }
+  }, []);
+
+  // Cleanup animation + timers on unmount
+  useEffect(() => () => {
+    if (animFrame.current) cancelAnimationFrame(animFrame.current);
+    if (boardingRepromptRef.current) clearTimeout(boardingRepromptRef.current);
+  }, []);
 
   // Pause/resume animation when EARS goes offline / restores
   useEffect(() => { pauseRef.current = !serverOnline; }, [serverOnline]);
+
+  // Defensive guard: boarding modal may only be open when actually arrived at patient
+  useEffect(() => {
+    if (missionState !== "arrived_patient" && boardingOpen) {
+      setBoardingOpen(false);
+      clearBoardingReprompt();
+    }
+  }, [missionState, boardingOpen, clearBoardingReprompt]);
 
   // Animate vehicle along path (safe against route swaps & pauses)
   const animateAlong = useCallback(
