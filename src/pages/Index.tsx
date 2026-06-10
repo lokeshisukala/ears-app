@@ -162,16 +162,24 @@ function Dashboard() {
 
   // Step 2: Patient boarding → Yes
   const handleBoardingYes = useCallback(() => {
+    clearBoardingReprompt();
     setBoardingOpen(false);
     setMissionState("boarded");
     setVitalsOpen(true);
-  }, [setMissionState]);
+  }, [setMissionState, clearBoardingReprompt]);
 
   const handleBoardingNo = useCallback(() => {
-    toast({ title: "Awaiting boarding", description: "Stand by — re-prompt in 5s." });
-    setTimeout(() => setBoardingOpen(true), 5000);
+    clearBoardingReprompt();
     setBoardingOpen(false);
-  }, []);
+    toast({ title: "Awaiting boarding", description: "Stand by — re-prompt in 5s." });
+    boardingRepromptRef.current = window.setTimeout(() => {
+      boardingRepromptRef.current = null;
+      // Only re-prompt if still arrived at patient and EARS is online
+      if (missionStateRef.current === "arrived_patient" && serverOnlineRef.current) {
+        setBoardingOpen(true);
+      }
+    }, 5000);
+  }, [clearBoardingReprompt]);
 
   // Step 3: vitals submit
   const handleVitalsSubmit = useCallback(() => {
