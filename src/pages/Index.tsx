@@ -223,6 +223,7 @@ function Dashboard() {
   // Step 5: Mission Done → reset
   const handleDone = useCallback(() => {
     setAccomplishedOpen(false);
+    clearBoardingReprompt();
     if (animFrame.current) cancelAnimationFrame(animFrame.current);
 
     // Save mission to history
