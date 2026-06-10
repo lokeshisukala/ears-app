@@ -79,7 +79,14 @@ function Dashboard() {
   }, []);
 
   // Pause/resume animation when EARS goes offline / restores
+  // Pause/resume animation when EARS goes offline / restores
   useEffect(() => { pauseRef.current = !serverOnline; }, [serverOnline]);
+
+  // Refs mirroring latest state for use inside timers
+  const missionStateRef = useRef(missionState);
+  const serverOnlineRef = useRef(serverOnline);
+  useEffect(() => { missionStateRef.current = missionState; }, [missionState]);
+  useEffect(() => { serverOnlineRef.current = serverOnline; }, [serverOnline]);
 
   // Defensive guard: boarding modal may only be open when actually arrived at patient
   useEffect(() => {
