@@ -190,6 +190,7 @@ function Dashboard() {
 
   // Step 3: vitals submit
   const handleVitalsSubmit = useCallback(() => {
+    clearBoardingReprompt();
     setVitalsOpen(false);
     setMissionState("scanning");
     setScanningActive(true);
@@ -278,12 +279,14 @@ function Dashboard() {
   const triggerAccident = useCallback(() => {
     if (!serverOnline) return;
     setServerOnline(false);
+    clearBoardingReprompt();
+    setBoardingOpen(false);
     toast({
       title: "💥 VEHICLE INCIDENT DETECTED",
       description: "Impact sensors triggered · EARS uplink lost.",
       variant: "destructive",
     });
-  }, [serverOnline]);
+  }, [serverOnline, clearBoardingReprompt]);
 
   // Randomly trigger an accident while driving (rare)
   useEffect(() => {
