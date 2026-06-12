@@ -279,6 +279,8 @@ function Dashboard() {
   const triggerAccident = useCallback(() => {
     if (!serverOnline) return;
     setServerOnline(false);
+    clearBoardingReprompt();
+    setBoardingOpen(false);
     toast({
       title: "💥 VEHICLE INCIDENT DETECTED",
       description: "Impact sensors triggered · EARS uplink lost.",
