@@ -190,6 +190,7 @@ function Dashboard() {
 
   // Step 3: vitals submit
   const handleVitalsSubmit = useCallback(() => {
+    clearBoardingReprompt();
     setVitalsOpen(false);
     setMissionState("scanning");
     setScanningActive(true);
