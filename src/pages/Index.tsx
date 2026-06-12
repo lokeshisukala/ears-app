@@ -388,17 +388,16 @@ function Dashboard() {
         phase={missionState === "en_route_hospital" ? "hospital" : "patient"}
       />
       {/* Manual accident-simulation button (demo) */}
-      {(missionState === "en_route_patient" || missionState === "en_route_hospital") && serverOnline && (
-        <Button
-          onClick={triggerAccident}
-          size="sm"
-          variant="destructive"
-          className="absolute bottom-3 right-3 z-[502] font-mono tracking-wider text-[10px] backdrop-blur-md opacity-80 hover:opacity-100"
-          title="Simulate ambulance accident"
-        >
-          ⚠ SIM ACCIDENT
-        </Button>
-      )}
+      <Button
+        onClick={triggerAccident}
+        size="sm"
+        variant="destructive"
+        disabled={!serverOnline || (missionState !== "en_route_patient" && missionState !== "en_route_hospital")}
+        className="absolute bottom-3 right-3 z-[502] font-mono tracking-wider text-[10px] backdrop-blur-md opacity-80 hover:opacity-100 disabled:opacity-40 disabled:cursor-not-allowed"
+        title="Simulate ambulance accident"
+      >
+        ⚠ SIM ACCIDENT
+      </Button>
       <ScanningOverlay active={scanningActive} hospitalName={hospital.name} />
     </main>
   );
