@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, MapPin, Navigation, X, Bell } from "lucide-react";
+import { AlertTriangle, MapPin, Navigation, X, Bell, BellOff } from "lucide-react";
 import { LatLng, DEMO } from "@/lib/routing";
 import { toast } from "@/hooks/use-toast";
 
@@ -76,12 +76,20 @@ interface Props {
 export function IncidentAlert({ idle, vehiclePos, onAccept }: Props) {
   const [incident, setIncident] = useState<IncidentReport | null>(null);
   const [secLeft, setSecLeft] = useState(30);
+  const [alertsOn, setAlertsOn] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem("ears.alertsOn") !== "0";
+  });
   const timerRef = useRef<number | null>(null);
   const autoRef = useRef<number | null>(null);
 
+  useEffect(() => {
+    localStorage.setItem("ears.alertsOn", alertsOn ? "1" : "0");
+  }, [alertsOn]);
+
   // Auto-dispatch a random incident every 45-75s while idle
   useEffect(() => {
-    if (!idle || incident) return;
+    if (!alertsOn || !idle || incident) return;
     const delay = 25000 + Math.random() * 30000;
     autoRef.current = window.setTimeout(() => {
       const inc = pickIncident(vehiclePos);
@@ -95,7 +103,7 @@ export function IncidentAlert({ idle, vehiclePos, onAccept }: Props) {
       });
     }, delay);
     return () => { if (autoRef.current) clearTimeout(autoRef.current); };
-  }, [idle, incident, vehiclePos]);
+  }, [alertsOn, idle, incident, vehiclePos]);
 
   // Acceptance countdown
   useEffect(() => {
@@ -134,6 +142,10 @@ export function IncidentAlert({ idle, vehiclePos, onAccept }: Props) {
   // Manual trigger button (always visible)
   const triggerNow = () => {
     if (incident) return;
+    if (!alertsOn) {
+      toast({ title: "Alerts are OFF", description: "Turn incoming alerts back on to receive dispatches." });
+      return;
+    }
     const inc = pickIncident(vehiclePos);
     setIncident(inc);
     setSecLeft(30);
@@ -147,13 +159,34 @@ export function IncidentAlert({ idle, vehiclePos, onAccept }: Props) {
 
   return (
     <>
+      {/* Alerts on/off toggle */}
+      <Button
+        onClick={() => {
+          const next = !alertsOn;
+          setAlertsOn(next);
+          toast({
+            title: next ? "🔔 Alerts ON" : "🔕 Alerts OFF",
+            description: next ? "Incoming incident dispatches enabled." : "You will not receive incoming alerts.",
+          });
+        }}
+        size="icon"
+        title={alertsOn ? "Turn incoming alerts OFF" : "Turn incoming alerts ON"}
+        aria-label="Toggle incoming alerts"
+        className={`absolute top-16 lg:top-3 left-16 lg:left-auto lg:right-[18rem] z-[550] h-10 w-10 rounded-full tactical-panel backdrop-blur-md hover:scale-110 transition-transform ${alertsOn ? "border border-success/50" : "border border-muted/50 opacity-70"}`}
+      >
+        {alertsOn
+          ? <Bell className="h-4 w-4 text-success" />
+          : <BellOff className="h-4 w-4 text-muted-foreground" />}
+      </Button>
+
       {/* Simulate incoming-call button — top-left, below mobile header */}
       <Button
         onClick={triggerNow}
         size="icon"
+        disabled={!alertsOn}
         title="Simulate incoming incident alert"
         aria-label="Simulate incoming incident alert"
-        className="absolute top-16 lg:top-3 left-3 lg:left-auto lg:right-[15rem] z-[550] h-10 w-10 rounded-full tactical-panel backdrop-blur-md hover:scale-110 transition-transform"
+        className="absolute top-16 lg:top-3 left-3 lg:left-auto lg:right-[15rem] z-[550] h-10 w-10 rounded-full tactical-panel backdrop-blur-md hover:scale-110 transition-transform disabled:opacity-40"
       >
         <Bell className="h-4 w-4 text-warning" />
       </Button>
