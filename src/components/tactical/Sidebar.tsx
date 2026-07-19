@@ -27,6 +27,17 @@ import { toast } from "@/hooks/use-toast";
 
 interface Patient { id: string; name: string; addr: string }
 
+const FEMALE_TITLES = /^(ms|mrs|miss|mrs\.|ms\.|smt|smt\.|dr\.?\s+(ms|mrs))\b/i;
+const FEMALE_NAMES = ["priya","asha","anita","kavya","kavitha","lakshmi","meera","neha","pooja","radha","riya","sita","sneha","swathi","aishwarya","divya","gita","gita","indira","jyothi","jyoti","kiran","kruthika","lata","madhavi","mounika","nandini","padma","rekha","saanvi","sanya","sarita","shruti","sunita","tanvi","usha","vandana","vidya","yamini","deepa","ananya","bhavana","bhavya","chitra","geetha","harini","ishita","kalpana","keerthi","laxmi","manasa","manisha","navya","nisha","preeti","rachana","ramya","rani","reshma","sangeeta","saraswati","shalini","shreya","sindhu","sonia","srilatha","tara","vaishnavi","varsha","veena","vidhya","zara"];
+
+function isFemaleName(name: string): boolean {
+  if (!name) return false;
+  const n = name.trim().toLowerCase();
+  if (FEMALE_TITLES.test(n)) return true;
+  const parts = n.replace(/^(capt|cpt|dr|mr|mrs|ms|miss|smt)\.?\s+/i, "").split(/\s+/);
+  return parts.some((p) => FEMALE_NAMES.includes(p));
+}
+
 interface Props {
   patient: Patient;
   hospitalName: string;
