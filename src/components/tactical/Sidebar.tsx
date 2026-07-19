@@ -1,5 +1,6 @@
 import { useDashboard } from "@/lib/dashboard-context";
 import driverImg from "@/assets/driver-avatar.jpg";
+import driverImgFemale from "@/assets/driver-avatar-female.jpg";
 import earsLogo from "@/assets/ears-logo.jpeg";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -76,7 +77,7 @@ function SidebarBody({ patient, hospitalName, onNavigate, onCustomDispatch, onDe
           <div className="flex items-center gap-3">
             <div className="relative">
               <img
-                src={driverImg}
+                src={isFemaleName(driver.name) ? driverImgFemale : driverImg}
                 alt={driver.name}
                 width={56} height={56}
                 loading="lazy"
