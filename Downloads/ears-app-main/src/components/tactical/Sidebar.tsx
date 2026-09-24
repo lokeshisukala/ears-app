@@ -1,0 +1,211 @@
+import { useDashboard } from "@/lib/dashboard-context";
+import driverImg from "@/assets/driver-avatar.jpg";
+import driverImgFemale from "@/assets/driver-avatar-female.jpg";
+import earsLogo from "@/assets/ears-logo.jpeg";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuSub,
+  DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+} from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { MoreVertical, Pencil, Languages, Eye, LogOut, Check } from "lucide-react";
+import { LANGUAGES } from "@/lib/i18n";
+import { TelemetryCard } from "./TelemetryCard";
+import { TrafficBar } from "./TrafficBar";
+import { MissionCard } from "./MissionCard";
+import { WeatherCard } from "./WeatherCard";
+import { MissionHistory } from "./MissionHistory";
+import { SpecialistCard } from "./SpecialistCard";
+import { VitalsGraph } from "./VitalsGraph";
+import { TrafficBlockageCard } from "./TrafficBlockageCard";
+import { useState } from "react";
+import { EditDetailsModal } from "./EditDetailsModal";
+import { useAuth } from "@/lib/auth-context";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
+
+interface Patient { id: string; name: string; addr: string }
+
+const FEMALE_TITLES = /^(ms|mrs|miss|mrs\.|ms\.|smt|smt\.|dr\.?\s+(ms|mrs))\b/i;
+const FEMALE_NAMES = ["priya","asha","anita","kavya","kavitha","lakshmi","meera","neha","pooja","radha","riya","sita","sneha","swathi","aishwarya","divya","gita","gita","indira","jyothi","jyoti","kiran","kruthika","lata","madhavi","mounika","nandini","padma","rekha","saanvi","sanya","sarita","shruti","sunita","tanvi","usha","vandana","vidya","yamini","deepa","ananya","bhavana","bhavya","chitra","geetha","harini","ishita","kalpana","keerthi","laxmi","manasa","manisha","navya","nisha","preeti","rachana","ramya","rani","reshma","sangeeta","saraswati","shalini","shreya","sindhu","sonia","srilatha","tara","vaishnavi","varsha","veena","vidhya","zara"];
+
+function isFemaleName(name: string): boolean {
+  if (!name) return false;
+  const n = name.trim().toLowerCase();
+  if (FEMALE_TITLES.test(n)) return true;
+  const parts = n.replace(/^(capt|cpt|dr|mr|mrs|ms|miss|smt)\.?\s+/i, "").split(/\s+/);
+  return parts.some((p) => FEMALE_NAMES.includes(p));
+}
+
+interface Props {
+  patient: Patient;
+  hospitalName: string;
+  onNavigate: () => void;
+  onCustomDispatch: (s: string, e: string) => void;
+  onDeceased?: () => void;
+  mobileOpen?: boolean;
+  onMobileOpenChange?: (open: boolean) => void;
+}
+
+function SidebarBody({ patient, hospitalName, onNavigate, onCustomDispatch, onDeceased }: Pick<Props, "patient" | "hospitalName" | "onNavigate" | "onCustomDispatch" | "onDeceased">) {
+  const { driver, t, lang, setLang, eyeComfort, toggleEyeComfort } = useDashboard();
+  const { logout, user } = useAuth();
+  const navigate = useNavigate();
+  const [editOpen, setEditOpen] = useState(false);
+
+  const handleLogout = () => {
+    toast({ title: "👋 Signed out", description: `${user?.unit ?? "Driver"} — secure session ended.` });
+    logout();
+    navigate("/login", { replace: true });
+  };
+
+  return (
+    <>
+      <div className="h-full flex flex-col">
+        {/* Header / Brand */}
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-gradient-tactical shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="relative shrink-0">
+              <img
+                src={earsLogo}
+                alt="EARS 2026 logo"
+                width={44}
+                height={44}
+                className="h-11 w-11 rounded-lg object-cover border border-primary/40 glow-primary"
+              />
+              <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-emergency animate-blink" />
+            </div>
+            <div className="min-w-0">
+              <div className="font-display font-bold text-lg text-glow tracking-widest leading-none">EARS</div>
+              <div className="text-[9px] uppercase tracking-widest text-muted-foreground truncate">{t("appTagline")}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Driver Profile */}
+        <div className="px-5 py-4 border-b border-border shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <img
+                src={isFemaleName(driver.name) ? driverImgFemale : driverImg}
+                alt={driver.name}
+                width={56} height={56}
+                loading="lazy"
+                className="h-14 w-14 rounded-full object-cover border-2 border-primary/60 glow-primary"
+              />
+              <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-success border-2 border-card" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-display font-semibold text-sm text-foreground truncate">{driver.name}</div>
+              <div className="font-mono text-xs text-primary">{driver.unit}</div>
+              <div className="font-mono text-[10px] text-success mt-0.5">● {t("onDuty")}</div>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="h-8 w-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition">
+                <MoreVertical className="h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 z-[10002]">
+                <DropdownMenuLabel className="font-display tracking-wider text-xs">SETTINGS</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setEditOpen(true)}>
+                  <Pencil className="h-4 w-4 mr-2" /> {t("editDetails")}
+                </DropdownMenuItem>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Languages className="h-4 w-4 mr-2" /> {t("language")}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    {LANGUAGES.map((l) => (
+                      <DropdownMenuItem key={l.code} onClick={() => setLang(l.code)}>
+                        <span className="flex-1">{l.label}</span>
+                        {lang === l.code && <Check className="h-4 w-4 ml-2 text-primary" />}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+                <DropdownMenuCheckboxItem checked={eyeComfort} onCheckedChange={toggleEyeComfort}>
+                  <Eye className="h-4 w-4 mr-2" /> {t("eyeComfort")}
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="text-emergency focus:text-emergency cursor-pointer"
+                >
+                  <LogOut className="h-4 w-4 mr-2" /> {t("logout")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Language Bar */}
+        <div className="px-3 py-2 border-b border-border bg-muted/20 flex items-center gap-1.5 overflow-x-auto custom-scrollbar shrink-0">
+          <Languages className="h-3.5 w-3.5 text-muted-foreground shrink-0 ml-1" />
+          {LANGUAGES.map((l) => (
+            <button
+              key={l.code}
+              onClick={() => setLang(l.code)}
+              className={`px-2 py-1 rounded text-[11px] font-display font-semibold tracking-wider shrink-0 transition-all ${
+                lang === l.code
+                  ? "bg-primary text-primary-foreground glow-primary"
+                  : "bg-card/60 text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+              title={l.label}
+            >
+              {l.native}
+            </button>
+          ))}
+        </div>
+
+        {/* Scroll content */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+          <SpecialistCard />
+          <VitalsGraph />
+          <TelemetryCard />
+          <WeatherCard />
+          <TrafficBar />
+          <TrafficBlockageCard hospitalName={hospitalName} onDeceased={onDeceased} />
+          <MissionCard patient={patient} onNavigate={onNavigate} onCustomDispatch={onCustomDispatch} />
+          <MissionHistory />
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 py-2.5 border-t border-border font-mono text-[10px] text-muted-foreground flex justify-between shrink-0">
+          <span>v2.4.1 · TAC-OS</span>
+          <span className="text-success">● SYS NOMINAL</span>
+        </div>
+      </div>
+
+      <EditDetailsModal open={editOpen} onOpenChange={setEditOpen} />
+    </>
+  );
+}
+
+export function Sidebar({ patient, hospitalName, onNavigate, onCustomDispatch, onDeceased, mobileOpen, onMobileOpenChange }: Props) {
+  return (
+    <Sheet open={!!mobileOpen} onOpenChange={onMobileOpenChange}>
+      <SheetContent
+        side="left"
+        className="p-0 w-[88vw] max-w-[360px] bg-card/95 backdrop-blur-xl border-border z-[10002] lg:hidden"
+      >
+        <SidebarBody
+          patient={patient}
+          hospitalName={hospitalName}
+          onNavigate={onNavigate}
+          onCustomDispatch={onCustomDispatch}
+          onDeceased={onDeceased}
+        />
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+// Desktop sidebar body — used inside the resizable layout in Index.tsx
+export function DesktopSidebar(props: Pick<Props, "patient" | "hospitalName" | "onNavigate" | "onCustomDispatch" | "onDeceased">) {
+  return (
+    <div className="h-screen border-r border-border bg-card/40 backdrop-blur-xl flex flex-col w-full min-w-0">
+      <SidebarBody {...props} />
+    </div>
+  );
+}

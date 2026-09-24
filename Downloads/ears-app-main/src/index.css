@@ -1,0 +1,237 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   EARS — Tactical Driver Dashboard Design System
+   ============================================ */
+
+@layer base {
+  :root {
+    /* TACTICAL DARK (default) */
+    --background: 220 30% 6%;
+    --foreground: 200 20% 95%;
+
+    --card: 220 28% 9%;
+    --card-foreground: 200 20% 95%;
+
+    --popover: 220 30% 7%;
+    --popover-foreground: 200 20% 95%;
+
+    /* Tactical cyan */
+    --primary: 188 95% 55%;
+    --primary-foreground: 220 40% 8%;
+    --primary-glow: 188 100% 65%;
+
+    --secondary: 220 25% 14%;
+    --secondary-foreground: 200 20% 95%;
+
+    --muted: 220 22% 12%;
+    --muted-foreground: 215 15% 60%;
+
+    --accent: 188 80% 50%;
+    --accent-foreground: 220 40% 8%;
+
+    /* Emergency red */
+    --destructive: 358 85% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --emergency: 358 90% 58%;
+    --emergency-glow: 358 100% 68%;
+
+    /* Status */
+    --success: 142 76% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 95% 55%;
+    --warning-foreground: 220 40% 8%;
+
+    --border: 220 25% 16%;
+    --input: 220 25% 14%;
+    --ring: 188 95% 55%;
+
+    --radius: 0.625rem;
+
+    /* Gradients */
+    --gradient-tactical: linear-gradient(135deg, hsl(220 30% 8%) 0%, hsl(220 35% 5%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-emergency: linear-gradient(135deg, hsl(var(--emergency)), hsl(var(--emergency-glow)));
+    --gradient-card: linear-gradient(180deg, hsl(220 28% 11%) 0%, hsl(220 30% 8%) 100%);
+    --gradient-radar: radial-gradient(circle, hsl(var(--primary) / 0.4) 0%, transparent 70%);
+
+    /* Shadows / glows */
+    --glow-primary: 0 0 24px hsl(var(--primary) / 0.5), 0 0 48px hsl(var(--primary) / 0.25);
+    --glow-emergency: 0 0 24px hsl(var(--emergency) / 0.6), 0 0 48px hsl(var(--emergency) / 0.3);
+    --shadow-tactical: 0 8px 32px -8px hsl(220 50% 0% / 0.6);
+    --shadow-card: 0 4px 16px -4px hsl(220 50% 0% / 0.4), inset 0 1px 0 hsl(200 30% 100% / 0.04);
+
+    /* Fonts */
+    --font-display: 'Rajdhani', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-body: 'Inter', system-ui, sans-serif;
+
+    /* Transitions */
+    --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-snappy: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .light {
+    --background: 210 30% 96%;
+    --foreground: 220 40% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 40% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 40% 10%;
+    --primary: 200 95% 42%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 200 100% 55%;
+    --secondary: 210 25% 90%;
+    --secondary-foreground: 220 40% 10%;
+    --muted: 210 25% 92%;
+    --muted-foreground: 215 15% 40%;
+    --accent: 200 80% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 358 80% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 20% 85%;
+    --input: 210 20% 88%;
+    --ring: 200 95% 42%;
+    --gradient-tactical: linear-gradient(135deg, hsl(210 30% 96%) 0%, hsl(210 25% 92%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(210 25% 97%) 100%);
+    --shadow-card: 0 4px 16px -4px hsl(220 30% 50% / 0.15);
+  }
+
+  /* Eye comfort sepia/warm filter */
+  .eye-comfort {
+    filter: sepia(0.35) saturate(1.1) hue-rotate(-10deg) brightness(0.95);
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+    background: var(--gradient-tactical);
+    background-attachment: fixed;
+  }
+  h1, h2, h3, h4, .font-display { font-family: var(--font-display); letter-spacing: 0.02em; }
+  .font-mono { font-family: var(--font-mono); }
+}
+
+@layer components {
+  .tactical-card {
+    @apply rounded-lg border border-border;
+    background: var(--gradient-card);
+    box-shadow: var(--shadow-card);
+  }
+  .tactical-panel {
+    background: var(--gradient-card);
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow-tactical);
+  }
+  .glow-primary { box-shadow: var(--glow-primary); }
+  .glow-emergency { box-shadow: var(--glow-emergency); }
+  .text-glow { text-shadow: 0 0 12px hsl(var(--primary) / 0.7); }
+
+  .scanline::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 0%, hsl(var(--primary) / 0.08) 50%, transparent 100%);
+    background-size: 100% 8px;
+    pointer-events: none;
+    animation: scanlines 8s linear infinite;
+  }
+
+  /* Leaflet dark mode */
+  .map-dark .leaflet-tile {
+    filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9) saturate(0.8);
+  }
+  .leaflet-container { background: hsl(var(--background)); font-family: var(--font-body); }
+  .leaflet-control-attribution { background: hsl(var(--card) / 0.7) !important; color: hsl(var(--muted-foreground)) !important; backdrop-filter: blur(4px); }
+  .leaflet-control-attribution a { color: hsl(var(--primary)) !important; }
+}
+
+@layer utilities {
+  .bg-grid {
+    background-image:
+      linear-gradient(hsl(var(--primary) / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--primary) / 0.06) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  /* Interactive tactical scrollbar */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary) / 0.5) hsl(var(--muted) / 0.3);
+  }
+  .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: hsl(var(--muted) / 0.2);
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, hsl(var(--primary) / 0.6), hsl(var(--primary) / 0.3));
+    border-radius: 4px;
+    border: 1px solid hsl(var(--border));
+    transition: background 0.2s ease;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, hsl(var(--primary) / 1), hsl(var(--primary-glow) / 0.7));
+    box-shadow: 0 0 8px hsl(var(--primary) / 0.6);
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:active { background: hsl(var(--primary)); }
+
+  /* Apply tactical scrollbar globally */
+  *::-webkit-scrollbar { width: 8px; height: 8px; }
+  *::-webkit-scrollbar-track { background: hsl(var(--muted) / 0.2); }
+  *::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, hsl(var(--primary) / 0.5), hsl(var(--primary) / 0.25));
+    border-radius: 4px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.9);
+    box-shadow: 0 0 6px hsl(var(--primary) / 0.5);
+  }
+}
+
+@keyframes scanlines {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100%; }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 16px hsl(var(--primary) / 0.5); }
+  50% { box-shadow: 0 0 32px hsl(var(--primary) / 0.9); }
+}
+@keyframes pulse-emergency {
+  0%, 100% { box-shadow: 0 0 16px hsl(var(--emergency) / 0.6); }
+  50% { box-shadow: 0 0 36px hsl(var(--emergency) / 1); }
+}
+@keyframes radar-sweep {
+  0% { transform: rotate(0deg); opacity: 0.8; }
+  100% { transform: rotate(360deg); opacity: 0.8; }
+}
+@keyframes radar-ping {
+  0% { transform: scale(0.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 0; }
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* Emergency siren light bars */
+@keyframes siren-red {
+  0%, 49% { background: radial-gradient(ellipse at left, hsl(358 100% 55% / .55) 0%, transparent 60%); }
+  50%, 100% { background: radial-gradient(ellipse at left, hsl(358 100% 55% / 0) 0%, transparent 60%); }
+}
+@keyframes siren-blue {
+  0%, 49% { background: radial-gradient(ellipse at right, hsl(220 100% 60% / 0) 0%, transparent 60%); }
+  50%, 100% { background: radial-gradient(ellipse at right, hsl(220 100% 60% / .55) 0%, transparent 60%); }
+}
+.animate-siren-red { animation: siren-red .55s steps(2,end) infinite; }
+.animate-siren-blue { animation: siren-blue .55s steps(2,end) infinite; }
